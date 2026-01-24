@@ -1,3 +1,4 @@
+// src/app/layout.tsx - UPDATE VERSION
 import './globals.css'
 import { Analytics } from '@vercel/analytics/react'  // <-- TAMBAH INI
 
@@ -15,6 +16,7 @@ export default function RootLayout({
     <html lang="en">
       <body className="bg-black text-white">
         {children}
+        <Analytics />  {/* <-- TAMBAH INI */}
       </body>
     </html>
   )
