@@ -1,12 +1,20 @@
-// Tambah di layout.tsx
-import { Analytics } from '@vercel/analytics/react'
+import './globals.css'
+import { Analytics } from '@vercel/analytics/react'  // <-- TAMBAH INI
 
-export default function Layout({ children }) {
+export const metadata = {
+  title: 'RaziaTech Quantum',
+  description: 'Quantum Computing Platform',
+}
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
   return (
-    <html>
-      <body>
+    <html lang="en">
+      <body className="bg-black text-white">
         {children}
-        <Analytics />
       </body>
     </html>
   )
