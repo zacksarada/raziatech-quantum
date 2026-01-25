@@ -1,47 +1,63 @@
-// src/app/api/waitlist/route.ts
 import { NextResponse } from 'next/server'
 
-// Initialize Supabase
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-
-let supabase: any = null
-
-if (supabaseUrl && supabaseKey) {
-  try {
-    const { createClient } = require('@supabase/supabase-js')
-    supabase = createClient(supabaseUrl, supabaseKey)
-    console.log('✅ Supabase initialized')
-  } catch (error) {
-    console.log('❌ Supabase init failed:', error)
+export async function GET(request: Request) {
+  // Debug info
+  const debugInfo = {
+    supabase_url_exists: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+    supabase_key_exists: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+    url_length: process.env.NEXT_PUBLIC_SUPABASE_URL?.length || 0,
+    key_length: process.env.SUPABASE_SERVICE_ROLE_KEY?.length || 0,
+    node_env: process.env.NODE_ENV,
+    vercel_env: process.env.VERCEL_ENV
   }
-}
+  
+  console.log('🔍 Debug info:', debugInfo)
 
-export async function GET() {
   try {
-    if (supabase) {
+    // Coba init Supabase
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    
+    if (supabaseUrl && supabaseKey) {
+      const { createClient } = await import('@supabase/supabase-js')
+      const supabase = createClient(supabaseUrl, supabaseKey)
+      
+      console.log('✅ Supabase client created')
+      
+      // Test query
       const { count, error } = await supabase
         .from('waitlist_subscribers')
         .select('*', { count: 'exact', head: true })
       
-      if (!error) {
-        return NextResponse.json({
-          success: true,
-          total_subscribers: count || 0,
-          remaining_spots: Math.max(0, 1000 - (count || 0)),
-          storage: 'supabase'
-        })
+      if (error) {
+        console.error('❌ Supabase query error:', error)
+        throw error
       }
+      
+      console.log('✅ Supabase query successful, count:', count)
+      
+      return NextResponse.json({
+        success: true,
+        total_subscribers: count || 0,
+        remaining_spots: Math.max(0, 1000 - (count || 0)),
+        storage: 'supabase',
+        debug: debugInfo
+      })
+    } else {
+      console.log('⚠️ Missing Supabase environment variables')
     }
   } catch (error) {
-    console.log('Supabase GET failed')
+    console.error('❌ Supabase initialization failed:', error)
   }
   
+  // Fallback
   return NextResponse.json({
     success: true,
     total_subscribers: 0,
     remaining_spots: 1000,
-    storage: 'none'
+    storage: 'memory',
+    debug: debugInfo,
+    message: 'Supabase not configured'
   })
 }
 
@@ -58,26 +74,47 @@ export async function POST(request: Request) {
       )
     }
 
+    // Debug env vars
+    console.log('🔍 Checking Supabase env vars...')
+    console.log('URL exists:', !!process.env.NEXT_PUBLIC_SUPABASE_URL)
+    console.log('Key exists:', !!process.env.SUPABASE_SERVICE_ROLE_KEY)
+
     // Try Supabase
-    if (supabase) {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    
+    if (supabaseUrl && supabaseKey) {
+      console.log('🔄 Attempting Supabase connection...')
+      
       try {
+        const { createClient } = await import('@supabase/supabase-js')
+        const supabase = createClient(supabaseUrl, supabaseKey)
+        
+        console.log('✅ Supabase client created for POST')
+        
         // Check duplicate
-        const { data: existing } = await supabase
+        const { data: existing, error: checkError } = await supabase
           .from('waitlist_subscribers')
           .select('id')
           .eq('email', email.toLowerCase())
-          .single()
-
+          .maybeSingle()
+        
+        if (checkError) {
+          console.error('❌ Duplicate check error:', checkError)
+        }
+        
         if (existing) {
+          console.log('ℹ️ Duplicate email detected')
           return NextResponse.json({
             success: true,
-            message: 'Already on waitlist!',
-            duplicate: true
+            message: 'You are already on our waitlist!',
+            duplicate: true,
+            storage: 'supabase'
           })
         }
-
-        // Insert
-        const { error } = await supabase
+        
+        // Insert to Supabase
+        const { data, error: insertError } = await supabase
           .from('waitlist_subscribers')
           .insert({
             email: email.toLowerCase(),
@@ -88,36 +125,59 @@ export async function POST(request: Request) {
             subscribed_at: new Date().toISOString(),
             status: 'confirmed'
           })
-
-        if (error) throw error
-
-        console.log('✅ Saved to Supabase:', email)
+          .select()
+          .single()
+        
+        if (insertError) {
+          console.error('❌ Supabase insert error:', insertError)
+          console.error('Error details:', {
+            code: insertError.code,
+            message: insertError.message,
+            details: insertError.details,
+            hint: insertError.hint
+          })
+          throw insertError
+        }
+        
+        console.log('🎉 Successfully saved to Supabase:', { email, id: data?.id })
+        
         return NextResponse.json({
           success: true,
-          message: 'Successfully added!',
-          storage: 'supabase'
+          message: 'Successfully added to waitlist!',
+          storage: 'supabase',
+          data
         })
-
+        
       } catch (error) {
-        console.log('Supabase save failed:', error)
-        // Fall through to success response
+        console.error('❌ Supabase operation failed:', error)
+        console.error('Full error:', JSON.stringify(error, null, 2))
       }
+    } else {
+      console.log('⚠️ Supabase env vars missing:', {
+        has_url: !!supabaseUrl,
+        has_key: !!supabaseKey,
+        url: supabaseUrl ? '*** set ***' : 'missing',
+        key: supabaseKey ? '*** set ***' : 'missing'
+      })
     }
-
-    // Log to console (will appear in Vercel logs)
-    console.log('📝 Waitlist submission:', { email, name, company, role, industry })
-
+    
+    // Fallback - log to console
+    console.log('📝 Fallback logging:', { email, name, company, role, industry })
+    
     return NextResponse.json({
       success: true,
       message: 'Thank you for joining!',
-      storage: 'log-only'
+      storage: 'log-only',
+      note: 'Supabase not configured properly'
     })
-
+    
   } catch (error) {
-    console.error('API error:', error)
+    console.error('❌ API error:', error)
     return NextResponse.json({
       success: true,
-      message: 'Thank you for your interest!'
+      message: 'Thank you for your interest!',
+      storage: 'error',
+      error: error instanceof Error ? error.message : 'Unknown error'
     })
   }
 }
