@@ -1,10 +1,8 @@
-// src/app/page.tsx - CORRECTED VERSION
+// src/app/page.tsx - SIMPLIFIED VERSION
 import { 
-  ArrowRight, Shield, Zap, Globe, Cpu, BarChart, 
-  Lock, Users, Clock, Award, ChevronRight, Sparkles,
-  Server, Key, LineChart, Cloud, ShieldCheck, Brain
+  ArrowRight, Zap, Sparkles, Cpu, ShieldCheck, 
+  LineChart, Globe, Brain, Server, ChevronRight 
 } from 'lucide-react'
-import WaitlistForm from '@/components/WaitlistForm'
 
 export default function Home() {
   const features = [
@@ -52,27 +50,6 @@ export default function Home() {
     }
   ]
 
-  const testimonials = [
-    {
-      name: "Bank Neo Commerce",
-      role: "CTO",
-      content: "Optimasi portfolio kami meningkat 300% dengan quantum computing.",
-      avatar: "BN"
-    },
-    {
-      name: "Telkom Indonesia",
-      role: "Head of Innovation",
-      content: "Route optimization mengurangi biaya logistik kami 40%.",
-      avatar: "TI"
-    },
-    {
-      name: "Pertamina",
-      role: "Data Science Director",
-      content: "Prediksi maintenance equipment menjadi 95% akurat.",
-      avatar: "PT"
-    }
-  ]
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-950 via-black to-gray-950">
       {/* Navigation */}
@@ -92,19 +69,14 @@ export default function Home() {
             </div>
             
             <div className="hidden lg:flex items-center gap-8">
-              <a href="#solutions" className="text-gray-300 hover:text-white transition hover:scale-105">Solutions</a>
               <a href="#technology" className="text-gray-300 hover:text-white transition hover:scale-105">Technology</a>
-              <a href="#industries" className="text-gray-300 hover:text-white transition hover:scale-105">Industries</a>
-              <a href="#pricing" className="text-gray-300 hover:text-white transition hover:scale-105">Pricing</a>
+              <a href="#solutions" className="text-gray-300 hover:text-white transition hover:scale-105">Solutions</a>
               <a href="#contact" className="text-gray-300 hover:text-white transition hover:scale-105">Contact</a>
             </div>
             
             <div className="flex items-center gap-4">
-              <button className="hidden md:block px-5 py-2 text-gray-300 hover:text-white transition">
-                Sign In
-              </button>
               <button className="px-6 py-2.5 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-xl font-semibold hover:opacity-90 transition-all duration-300 hover:scale-105 flex items-center gap-2 group">
-                <span>Join Waitlist</span>
+                <span>Contact Sales</span>
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </button>
             </div>
@@ -114,11 +86,9 @@ export default function Home() {
 
       {/* Hero Section */}
       <section className="relative pt-40 pb-32 px-4 overflow-hidden">
-        {/* Animated Background */}
         <div className="absolute inset-0">
           <div className="absolute top-20 left-10 w-72 h-72 bg-purple-500/20 rounded-full blur-3xl animate-pulse"></div>
           <div className="absolute bottom-20 right-10 w-72 h-72 bg-cyan-500/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl"></div>
         </div>
         
         <div className="container mx-auto relative z-10">
@@ -126,7 +96,7 @@ export default function Home() {
             {/* Badge */}
             <div className="inline-flex items-center gap-2 bg-gray-900/50 px-4 py-2 rounded-full mb-8 border border-gray-800">
               <Sparkles className="w-4 h-4 text-cyan-400" />
-              <span className="text-sm font-medium text-cyan-300">Quantum-Ready Platform Launch</span>
+              <span className="text-sm font-medium text-cyan-300">Quantum-Ready Platform</span>
             </div>
             
             {/* Main Headline */}
@@ -155,7 +125,7 @@ export default function Home() {
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
                   </svg>
-                  Schedule Enterprise Demo
+                  Schedule Demo
                 </span>
               </button>
             </div>
@@ -218,113 +188,58 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="py-24 px-4 bg-gradient-to-b from-black to-gray-950">
+      {/* Simple Contact Section */}
+      <section id="contact" className="py-24 px-4 bg-gradient-to-b from-gray-950 to-black">
         <div className="container mx-auto">
-          <div className="text-center mb-16">
+          <div className="max-w-3xl mx-auto text-center">
             <h2 className="text-4xl md:text-5xl font-bold mb-6">
-              Trusted by <span className="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-500">Industry Leaders</span>
+              Get in <span className="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-500">Touch</span>
             </h2>
-            <p className="text-gray-400 text-lg max-w-3xl mx-auto">
-              Join 50+ enterprises that have transformed their operations with 
-              RaziaTech Quantum solutions.
+            <p className="text-gray-400 text-lg mb-10">
+              Interested in quantum solutions for your business? 
+              Contact us for a consultation.
             </p>
-          </div>
-          
-          <div className="grid md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <div key={index} className="bg-gradient-to-b from-gray-900/50 to-black/50 p-8 rounded-3xl border border-gray-800">
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="w-14 h-14 bg-gradient-to-r from-cyan-500/20 to-purple-500/20 rounded-xl flex items-center justify-center text-xl font-bold">
-                    {testimonial.avatar}
-                  </div>
-                  <div>
-                    <div className="font-bold text-lg">{testimonial.name}</div>
-                    <div className="text-cyan-400 text-sm">{testimonial.role}</div>
+            
+            <div className="bg-gradient-to-br from-gray-900/50 to-black/50 rounded-3xl p-8 border border-gray-800">
+              <div className="grid md:grid-cols-2 gap-8">
+                <div className="text-left">
+                  <h3 className="text-xl font-bold mb-4">Contact Info</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <div className="text-cyan-400 font-semibold">Email</div>
+                      <div className="text-gray-300">contact@raziatech-quantum.com</div>
+                    </div>
+                    <div>
+                      <div className="text-cyan-400 font-semibold">Location</div>
+                      <div className="text-gray-300">Jakarta, Indonesia</div>
+                    </div>
+                    <div>
+                      <div className="text-cyan-400 font-semibold">Business Hours</div>
+                      <div className="text-gray-300">Mon-Fri, 9AM-6PM WIB</div>
+                    </div>
                   </div>
                 </div>
-                <p className="text-gray-300 italic mb-6">"{testimonial.content}"</p>
-                <div className="flex text-yellow-400">
-                  {'★'.repeat(5)}
+                
+                <div className="text-left">
+                  <h3 className="text-xl font-bold mb-4">Quick Contact</h3>
+                  <div className="space-y-4">
+                    <input 
+                      type="email" 
+                      placeholder="Your email" 
+                      className="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    />
+                    <textarea 
+                      placeholder="Your message" 
+                      rows={3}
+                      className="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    />
+                    <button className="w-full py-3 bg-gradient-to-r from-cyan-500 to-purple-500 text-white font-semibold rounded-xl hover:opacity-90 transition">
+                      Send Message
+                    </button>
+                  </div>
                 </div>
               </div>
-            ))}
-          </div>
-          
-          {/* Trust Logos */}
-          <div className="mt-16 grid grid-cols-2 md:grid-cols-6 gap-8 opacity-50">
-            {['BCA', 'Mandiri', 'Telkom', 'Pertamina', 'Tokopedia', 'Gojek'].map((logo, index) => (
-              <div key={index} className="text-center p-4">
-                <div className="text-2xl font-bold text-gray-400">{logo}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Waitlist Section */}
-      <section className="py-24 px-4 bg-gradient-to-b from-gray-950 to-black">
-        <div className="container mx-auto">
-          <div className="max-w-4xl mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="text-4xl md:text-5xl font-bold mb-6">
-                Join the <span className="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-500">Quantum Revolution</span>
-              </h2>
-              <p className="text-gray-400 text-lg">
-                Be among the first to access enterprise quantum computing.
-                Limited early access spots available.
-              </p>
             </div>
-            
-            <div className="bg-gradient-to-br from-gray-900/50 to-black/50 rounded-3xl p-8 md:p-12 border border-gray-800">
-              <WaitlistForm />
-            </div>
-            
-            <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
-              <div className="p-6">
-                <div className="text-2xl font-bold text-cyan-400 mb-2">Early Access</div>
-                <div className="text-gray-400">Priority onboarding & support</div>
-              </div>
-              <div className="p-6">
-                <div className="text-2xl font-bold text-purple-400 mb-2">Exclusive Pricing</div>
-                <div className="text-gray-400">Special rates for early adopters</div>
-              </div>
-              <div className="p-6">
-                <div className="text-2xl font-bold text-green-400 mb-2">Influence Roadmap</div>
-                <div className="text-gray-400">Help shape our product features</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Final CTA */}
-      <section className="py-24 px-4">
-        <div className="container mx-auto">
-          <div className="max-w-5xl mx-auto text-center bg-gradient-to-br from-gray-900/50 to-black/50 rounded-3xl p-12 border border-gray-800 relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500"></div>
-            
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">
-              Ready for <span className="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-500">Quantum Transformation</span>?
-            </h2>
-            
-            <p className="text-gray-300 text-lg mb-10 max-w-2xl mx-auto">
-              Join the quantum revolution. Get started with a free trial or 
-              schedule a personalized demo with our quantum experts.
-            </p>
-            
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="px-12 py-4 bg-gradient-to-r from-cyan-500 to-purple-500 text-white font-bold rounded-xl hover:scale-105 transition-transform text-lg shadow-2xl shadow-cyan-500/30">
-                Start 30-Day Free Trial
-              </button>
-              <button className="px-12 py-4 bg-transparent text-white font-bold rounded-xl border-2 border-gray-700 hover:border-cyan-500 transition-colors text-lg">
-                Contact Quantum Experts
-              </button>
-            </div>
-            
-            <p className="text-gray-500 text-sm mt-8">
-              No credit card required • Enterprise SLA included • 24/7 support
-            </p>
           </div>
         </div>
       </section>
@@ -332,8 +247,8 @@ export default function Home() {
       {/* Footer */}
       <footer className="border-t border-gray-800 py-12 px-4 bg-black">
         <div className="container mx-auto">
-          <div className="grid md:grid-cols-5 gap-8 mb-8">
-            <div className="md:col-span-2">
+          <div className="grid md:grid-cols-3 gap-8 mb-8">
+            <div>
               <div className="flex items-center gap-3 mb-6">
                 <div className="h-12 w-12 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-xl flex items-center justify-center">
                   <Zap className="h-7 w-7 text-white" />
@@ -343,43 +258,32 @@ export default function Home() {
                   <div className="text-sm text-cyan-400">Indonesia's Quantum Pioneer</div>
                 </div>
               </div>
-              <p className="text-gray-400 mb-6">
-                Enterprise quantum computing solutions for Indonesian businesses. 
-                Transforming complexity into opportunity.
+              <p className="text-gray-400">
+                Enterprise quantum computing solutions for Indonesian businesses.
               </p>
-              <div className="flex gap-4">
-                {['Twitter', 'LinkedIn', 'GitHub', 'YouTube'].map((social) => (
-                  <a key={social} href="#" className="text-gray-500 hover:text-white transition">
-                    {social}
-                  </a>
-                ))}
-              </div>
             </div>
             
-            {['Product', 'Solutions', 'Resources', 'Company'].map((section) => (
-              <div key={section}>
-                <h4 className="text-lg font-bold mb-4 text-white">{section}</h4>
-                <ul className="space-y-2 text-gray-400">
-                  {Array(4).fill(0).map((_, i) => (
-                    <li key={i}>
-                      <a href="#" className="hover:text-white transition">{section} Link {i + 1}</a>
-                    </li>
-                  ))}
-                </ul>
+            <div>
+              <h4 className="text-lg font-bold mb-4 text-white">Quick Links</h4>
+              <ul className="space-y-2 text-gray-400">
+                <li><a href="#technology" className="hover:text-white transition">Technology</a></li>
+                <li><a href="#solutions" className="hover:text-white transition">Solutions</a></li>
+                <li><a href="#contact" className="hover:text-white transition">Contact</a></li>
+              </ul>
+            </div>
+            
+            <div>
+              <h4 className="text-lg font-bold mb-4 text-white">Connect</h4>
+              <div className="flex gap-4">
+                <a href="#" className="text-gray-500 hover:text-white transition">LinkedIn</a>
+                <a href="#" className="text-gray-500 hover:text-white transition">Twitter</a>
+                <a href="#" className="text-gray-500 hover:text-white transition">GitHub</a>
               </div>
-            ))}
+            </div>
           </div>
           
-          <div className="pt-8 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center">
-            <p className="text-gray-500 mb-4 md:mb-0">
-              © {new Date().getFullYear()} RaziaTech Quantum. All rights reserved.
-            </p>
-            <div className="flex gap-6 text-sm text-gray-500">
-              <a href="#" className="hover:text-white transition">Privacy Policy</a>
-              <a href="#" className="hover:text-white transition">Terms of Service</a>
-              <a href="#" className="hover:text-white transition">Cookie Policy</a>
-              <a href="#" className="hover:text-white transition">Compliance</a>
-            </div>
+          <div className="pt-8 border-t border-gray-800 text-center text-gray-500">
+            <p>© {new Date().getFullYear()} RaziaTech Quantum. All rights reserved.</p>
           </div>
         </div>
       </footer>
