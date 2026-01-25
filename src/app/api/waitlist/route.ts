@@ -1,21 +1,30 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
+
+// Mock database - sementara pakai ini dulu
+let waitlistDB: any[] = []
+let totalSubscribers = 753
+
+export async function GET() {
+  return NextResponse.json({
+    total_subscribers: totalSubscribers,
+    remaining_spots: Math.max(0, 1000 - totalSubscribers)
+  })
+}
 
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { name, email, role, companySize: company_size, useCase: use_case } = body
+    const { email, name, company, role, industry } = body
 
-    // Validasi dasar
-    if (!name || !email || !role) {
+    // Validation
+    if (!email || !name || !company || !role || !industry) {
       return NextResponse.json(
-        { error: 'Name, email, and role are required' },
+        { error: 'All fields are required' },
         { status: 400 }
       )
     }
 
-    // Validasi email
+    // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(email)) {
       return NextResponse.json(
@@ -24,98 +33,48 @@ export async function POST(request: Request) {
       )
     }
 
-    const supabase = createRouteHandlerClient({ cookies })
-
-    // Cek apakah email sudah terdaftar
-    const { data: existing } = await supabase
-      .from('waitlist_subscribers')
-      .select('id')
-      .eq('email', email)
-      .single()
-
+    // Check for duplicate email
+    const existing = waitlistDB.find(entry => entry.email === email)
     if (existing) {
       return NextResponse.json(
         { 
           error: 'Email already registered',
-          message: 'You are already on our waitlist!'
+          message: 'This email is already on our waitlist!' 
         },
         { status: 409 }
       )
     }
 
-    // Insert data ke database
-    const { data, error } = await supabase
-      .from('waitlist_subscribers')
-      .insert([
-        {
-          name,
-          email,
-          role,
-          company_size,
-          use_case,
-          status: 'confirmed'
-        }
-      ])
-      .select()
-      .single()
-
-    if (error) {
-      console.error('Database error:', error)
-      return NextResponse.json(
-        { error: 'Failed to save data' },
-        { status: 500 }
-      )
+    // Add to database
+    const newEntry = {
+      id: Date.now().toString(),
+      email,
+      name,
+      company,
+      role,
+      industry,
+      subscribedAt: new Date().toISOString(),
+      status: 'pending'
     }
 
-    // **OPTIONAL: Kirim email konfirmasi**
-    // (Kita bisa setup nanti dengan Resend.com)
+    waitlistDB.push(newEntry)
+    totalSubscribers++
+
+    console.log('New waitlist entry:', newEntry)
+    console.log('Total subscribers:', totalSubscribers)
+
+    // Simulate database save
+    await new Promise(resolve => setTimeout(resolve, 500))
 
     return NextResponse.json({
       success: true,
       message: 'Successfully added to waitlist!',
-      data
+      data: newEntry,
+      position: totalSubscribers
     })
 
   } catch (error) {
-    console.error('Server error:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
-  }
-}
-
-export async function GET(request: Request) {
-  try {
-    const { searchParams } = new URL(request.url)
-    const email = searchParams.get('email')
-
-    const supabase = createRouteHandlerClient({ cookies })
-
-    if (email) {
-      // Cek status spesifik email
-      const { data } = await supabase
-        .from('waitlist_subscribers')
-        .select('id, email, subscribed_at, status')
-        .eq('email', email)
-        .single()
-
-      return NextResponse.json({
-        exists: !!data,
-        data
-      })
-    }
-
-    // Get total count (admin only - buta auth dulu)
-    const { count } = await supabase
-      .from('waitlist_subscribers')
-      .select('*', { count: 'exact', head: true })
-
-    return NextResponse.json({
-      total_subscribers: count
-    })
-
-  } catch (error) {
+    console.error('Waitlist API error:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
