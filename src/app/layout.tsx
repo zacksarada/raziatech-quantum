@@ -1,10 +1,9 @@
-// src/app/layout.tsx - UPDATE VERSION
+// src/app/layout.tsx
 import './globals.css'
-import { Analytics } from '@vercel/analytics/react'  // <-- TAMBAH INI
 
 export const metadata = {
-  title: 'RaziaTech Quantum',
-  description: 'Quantum Computing Platform',
+  title: 'RaziaTech Quantum - Enterprise Quantum Computing',
+  description: 'Quantum computing solutions for Indonesian enterprises. 128-Qubit processors, quantum encryption, real-time analytics.',
 }
 
 export default function RootLayout({
@@ -16,7 +15,6 @@ export default function RootLayout({
     <html lang="en">
       <body className="bg-black text-white">
         {children}
-        <Analytics />  {/* <-- TAMBAH INI */}
       </body>
     </html>
   )
