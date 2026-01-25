@@ -1,14 +1,34 @@
+// src/app/api/waitlist/route.ts
+import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 
-// Mock database - sementara pakai ini dulu
-let waitlistDB: any[] = []
-let totalSubscribers = 753
+// Initialize Supabase
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+
+const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
 export async function GET() {
-  return NextResponse.json({
-    total_subscribers: totalSubscribers,
-    remaining_spots: Math.max(0, 1000 - totalSubscribers)
-  })
+  try {
+    // Get total count
+    const { count, error: countError } = await supabase
+      .from('waitlist_subscribers')
+      .select('*', { count: 'exact', head: true })
+
+    if (countError) throw countError
+
+    return NextResponse.json({
+      total_subscribers: count || 0,
+      remaining_spots: Math.max(0, 1000 - (count || 0))
+    })
+
+  } catch (error) {
+    console.error('Error fetching waitlist stats:', error)
+    return NextResponse.json(
+      { total_subscribers: 0, remaining_spots: 1000 },
+      { status: 200 }
+    )
+  }
 }
 
 export async function POST(request: Request) {
@@ -33,44 +53,55 @@ export async function POST(request: Request) {
       )
     }
 
-    // Check for duplicate email
-    const existing = waitlistDB.find(entry => entry.email === email)
+    // Check for duplicate
+    const { data: existing } = await supabase
+      .from('waitlist_subscribers')
+      .select('id')
+      .eq('email', email.toLowerCase())
+      .single()
+
     if (existing) {
       return NextResponse.json(
         { 
           error: 'Email already registered',
-          message: 'This email is already on our waitlist!' 
+          message: 'You are already on our waitlist!' 
         },
         { status: 409 }
       )
     }
 
-    // Add to database
-    const newEntry = {
-      id: Date.now().toString(),
-      email,
-      name,
-      company,
-      role,
-      industry,
-      subscribedAt: new Date().toISOString(),
-      status: 'pending'
+    // Insert to database
+    const { data, error: insertError } = await supabase
+      .from('waitlist_subscribers')
+      .insert({
+        email: email.toLowerCase(),
+        name,
+        company,
+        role,
+        industry,
+        status: 'confirmed'
+      })
+      .select()
+      .single()
+
+    if (insertError) {
+      console.error('Database insert error:', insertError)
+      return NextResponse.json(
+        { error: 'Failed to save to database' },
+        { status: 500 }
+      )
     }
 
-    waitlistDB.push(newEntry)
-    totalSubscribers++
-
-    console.log('New waitlist entry:', newEntry)
-    console.log('Total subscribers:', totalSubscribers)
-
-    // Simulate database save
-    await new Promise(resolve => setTimeout(resolve, 500))
+    // Get position
+    const { count } = await supabase
+      .from('waitlist_subscribers')
+      .select('*', { count: 'exact', head: true })
 
     return NextResponse.json({
       success: true,
       message: 'Successfully added to waitlist!',
-      data: newEntry,
-      position: totalSubscribers
+      data,
+      position: count
     })
 
   } catch (error) {
