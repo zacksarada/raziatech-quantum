@@ -18,5 +18,9 @@
     "autoprefixer": "^10.4.16",
     "postcss": "^8.4.32",
     "typescript": "^5.3.3"
+  },
+  "scripts": {
+    "build": "next build",
+    "preview": "next build && npx @cloudflare/next-on-pages@1"
   }
 }
