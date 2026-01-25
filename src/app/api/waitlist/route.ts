@@ -1,14 +1,47 @@
+// src/app/api/waitlist/route.ts
 import { NextResponse } from 'next/server'
 
-// Simple in-memory storage untuk testing
-let waitlistMemoryDB: any[] = []
+// Initialize Supabase
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+let supabase: any = null
+
+if (supabaseUrl && supabaseKey) {
+  try {
+    const { createClient } = require('@supabase/supabase-js')
+    supabase = createClient(supabaseUrl, supabaseKey)
+    console.log('✅ Supabase initialized')
+  } catch (error) {
+    console.log('❌ Supabase init failed:', error)
+  }
+}
 
 export async function GET() {
+  try {
+    if (supabase) {
+      const { count, error } = await supabase
+        .from('waitlist_subscribers')
+        .select('*', { count: 'exact', head: true })
+      
+      if (!error) {
+        return NextResponse.json({
+          success: true,
+          total_subscribers: count || 0,
+          remaining_spots: Math.max(0, 1000 - (count || 0)),
+          storage: 'supabase'
+        })
+      }
+    }
+  } catch (error) {
+    console.log('Supabase GET failed')
+  }
+  
   return NextResponse.json({
     success: true,
-    total_subscribers: waitlistMemoryDB.length,
-    remaining_spots: Math.max(0, 1000 - waitlistMemoryDB.length),
-    storage: 'memory'
+    total_subscribers: 0,
+    remaining_spots: 1000,
+    storage: 'none'
   })
 }
 
@@ -20,67 +53,71 @@ export async function POST(request: Request) {
     // Validation
     if (!email || !name || !company || !role || !industry) {
       return NextResponse.json(
-        { 
-          success: false,
-          error: 'All fields are required' 
-        },
+        { success: false, error: 'All fields required' },
         { status: 400 }
       )
     }
 
-    // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(email)) {
-      return NextResponse.json(
-        { 
-          success: false,
-          error: 'Invalid email format' 
-        },
-        { status: 400 }
-      )
+    // Try Supabase
+    if (supabase) {
+      try {
+        // Check duplicate
+        const { data: existing } = await supabase
+          .from('waitlist_subscribers')
+          .select('id')
+          .eq('email', email.toLowerCase())
+          .single()
+
+        if (existing) {
+          return NextResponse.json({
+            success: true,
+            message: 'Already on waitlist!',
+            duplicate: true
+          })
+        }
+
+        // Insert
+        const { error } = await supabase
+          .from('waitlist_subscribers')
+          .insert({
+            email: email.toLowerCase(),
+            name,
+            company,
+            role,
+            industry,
+            subscribed_at: new Date().toISOString(),
+            status: 'confirmed'
+          })
+
+        if (error) throw error
+
+        console.log('✅ Saved to Supabase:', email)
+        return NextResponse.json({
+          success: true,
+          message: 'Successfully added!',
+          storage: 'supabase'
+        })
+
+      } catch (error) {
+        console.log('Supabase save failed:', error)
+        // Fall through to success response
+      }
     }
 
-    // Check for duplicate
-    const existing = waitlistMemoryDB.find(entry => 
-      entry.email.toLowerCase() === email.toLowerCase()
-    )
-    
-    if (existing) {
-      return NextResponse.json({
-        success: true,
-        message: 'You are already on our waitlist!',
-        duplicate: true
-      })
-    }
-
-    // Add to memory storage
-    const newEntry = {
-      id: Date.now(),
-      email: email.toLowerCase(),
-      name,
-      company,
-      role,
-      industry,
-      timestamp: new Date().toISOString()
-    }
-
-    waitlistMemoryDB.push(newEntry)
-    
-    // Log ke console (bisa dilihat di Vercel logs)
-    console.log('📝 New waitlist entry:', newEntry)
+    // Log to console (will appear in Vercel logs)
+    console.log('📝 Waitlist submission:', { email, name, company, role, industry })
 
     return NextResponse.json({
       success: true,
-      message: 'Successfully added to waitlist!',
-      position: waitlistMemoryDB.length
+      message: 'Thank you for joining!',
+      storage: 'log-only'
     })
 
   } catch (error) {
-    console.error('Waitlist API error:', error)
-    
+    console.error('API error:', error)
     return NextResponse.json({
       success: true,
-      message: 'Thank you for joining our waitlist!'
-    }, { status: 200 })
+      message: 'Thank you for your interest!'
+    })
   }
 }
