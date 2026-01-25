@@ -1,8 +1,9 @@
-// src/app/page.tsx - SIMPLIFIED VERSION
+// src/app/page.tsx - UPDATED VERSION WITH WAITLIST
 import { 
   ArrowRight, Zap, Sparkles, Cpu, ShieldCheck, 
   LineChart, Globe, Brain, Server, ChevronRight 
 } from 'lucide-react'
+import WaitlistForm from '@/components/WaitlistForm'
 
 export default function Home() {
   const features = [
@@ -70,15 +71,17 @@ export default function Home() {
             
             <div className="hidden lg:flex items-center gap-8">
               <a href="#technology" className="text-gray-300 hover:text-white transition hover:scale-105">Technology</a>
-              <a href="#solutions" className="text-gray-300 hover:text-white transition hover:scale-105">Solutions</a>
+              <a href="#waitlist" className="text-gray-300 hover:text-white transition hover:scale-105">Waitlist</a>
               <a href="#contact" className="text-gray-300 hover:text-white transition hover:scale-105">Contact</a>
             </div>
             
             <div className="flex items-center gap-4">
-              <button className="px-6 py-2.5 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-xl font-semibold hover:opacity-90 transition-all duration-300 hover:scale-105 flex items-center gap-2 group">
-                <span>Contact Sales</span>
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </button>
+              <a href="#waitlist">
+                <button className="px-6 py-2.5 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-xl font-semibold hover:opacity-90 transition-all duration-300 hover:scale-105 flex items-center gap-2 group">
+                  <span>Join Waitlist</span>
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </button>
+              </a>
             </div>
           </div>
         </div>
@@ -116,18 +119,22 @@ export default function Home() {
             
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
-              <button className="group px-10 py-4 bg-gradient-to-r from-cyan-500 to-purple-500 text-white font-semibold rounded-xl hover:scale-105 transition-all duration-300 flex items-center justify-center gap-3 text-lg shadow-2xl shadow-cyan-500/20">
-                <span>Start Free Trial</span>
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform" />
-              </button>
-              <button className="px-10 py-4 bg-gray-900/50 text-white font-semibold rounded-xl border-2 border-gray-700 hover:border-cyan-500 transition-all duration-300 text-lg backdrop-blur-sm">
-                <span className="flex items-center justify-center gap-2">
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                  </svg>
-                  Schedule Demo
-                </span>
-              </button>
+              <a href="#waitlist">
+                <button className="group px-10 py-4 bg-gradient-to-r from-cyan-500 to-purple-500 text-white font-semibold rounded-xl hover:scale-105 transition-all duration-300 flex items-center justify-center gap-3 text-lg shadow-2xl shadow-cyan-500/20">
+                  <span>Join Waitlist</span>
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform" />
+                </button>
+              </a>
+              <a href="#contact">
+                <button className="px-10 py-4 bg-gray-900/50 text-white font-semibold rounded-xl border-2 border-gray-700 hover:border-cyan-500 transition-all duration-300 text-lg backdrop-blur-sm">
+                  <span className="flex items-center justify-center gap-2">
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                    </svg>
+                    Contact Sales
+                  </span>
+                </button>
+              </a>
             </div>
             
             {/* Stats */}
@@ -184,6 +191,69 @@ export default function Home() {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Waitlist Section */}
+      <section id="waitlist" className="py-24 px-4 bg-gradient-to-b from-gray-950 to-black">
+        <div className="container mx-auto">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-12">
+              <div className="inline-flex items-center gap-2 bg-cyan-900/20 px-4 py-2 rounded-full mb-6 border border-cyan-800">
+                <span className="text-cyan-400">✨</span>
+                <span className="text-sm font-medium text-cyan-300">Limited Early Access</span>
+              </div>
+              
+              <h2 className="text-4xl md:text-5xl font-bold mb-6">
+                Join the <span className="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-500">Quantum Revolution</span>
+              </h2>
+              
+              <p className="text-gray-400 text-lg max-w-3xl mx-auto">
+                Be among the first 100 enterprises to access RaziaTech Quantum.
+                Exclusive early access includes priority onboarding, special pricing,
+                and direct influence on our product roadmap.
+              </p>
+            </div>
+            
+            <div className="grid lg:grid-cols-5 gap-8">
+              <div className="lg:col-span-3">
+                <div className="bg-gradient-to-br from-gray-900/50 to-black/50 rounded-3xl p-8 border border-gray-800">
+                  <WaitlistForm />
+                </div>
+              </div>
+              
+              <div className="lg:col-span-2 space-y-6">
+                <div className="bg-gradient-to-br from-gray-900/30 to-black/30 p-6 rounded-2xl border border-gray-800">
+                  <div className="text-cyan-400 text-2xl mb-2">🎯</div>
+                  <h3 className="text-xl font-bold mb-2">Priority Access</h3>
+                  <p className="text-gray-400 text-sm">
+                    First in line for platform access with dedicated onboarding support.
+                  </p>
+                </div>
+                
+                <div className="bg-gradient-to-br from-gray-900/30 to-black/30 p-6 rounded-2xl border border-gray-800">
+                  <div className="text-purple-400 text-2xl mb-2">💰</div>
+                  <h3 className="text-xl font-bold mb-2">Special Pricing</h3>
+                  <p className="text-gray-400 text-sm">
+                    Exclusive rates locked in for 24 months for early adopters.
+                  </p>
+                </div>
+                
+                <div className="bg-gradient-to-br from-gray-900/30 to-black/30 p-6 rounded-2xl border border-gray-800">
+                  <div className="text-green-400 text-2xl mb-2">💡</div>
+                  <h3 className="text-xl font-bold mb-2">Influence Roadmap</h3>
+                  <p className="text-gray-400 text-sm">
+                    Direct input on feature development and priority requests.
+                  </p>
+                </div>
+                
+                <div className="text-center p-4 bg-gradient-to-r from-cyan-900/20 to-purple-900/20 rounded-2xl border border-gray-800">
+                  <div className="text-2xl font-bold text-white mb-1">87</div>
+                  <div className="text-sm text-gray-400">Spots remaining</div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -247,8 +317,8 @@ export default function Home() {
       {/* Footer */}
       <footer className="border-t border-gray-800 py-12 px-4 bg-black">
         <div className="container mx-auto">
-          <div className="grid md:grid-cols-3 gap-8 mb-8">
-            <div>
+          <div className="grid md:grid-cols-4 gap-8 mb-8">
+            <div className="md:col-span-2">
               <div className="flex items-center gap-3 mb-6">
                 <div className="h-12 w-12 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-xl flex items-center justify-center">
                   <Zap className="h-7 w-7 text-white" />
@@ -258,32 +328,43 @@ export default function Home() {
                   <div className="text-sm text-cyan-400">Indonesia's Quantum Pioneer</div>
                 </div>
               </div>
-              <p className="text-gray-400">
+              <p className="text-gray-400 mb-6">
                 Enterprise quantum computing solutions for Indonesian businesses.
+                Transforming complexity into opportunity with quantum technology.
               </p>
-            </div>
-            
-            <div>
-              <h4 className="text-lg font-bold mb-4 text-white">Quick Links</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li><a href="#technology" className="hover:text-white transition">Technology</a></li>
-                <li><a href="#solutions" className="hover:text-white transition">Solutions</a></li>
-                <li><a href="#contact" className="hover:text-white transition">Contact</a></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h4 className="text-lg font-bold mb-4 text-white">Connect</h4>
               <div className="flex gap-4">
                 <a href="#" className="text-gray-500 hover:text-white transition">LinkedIn</a>
                 <a href="#" className="text-gray-500 hover:text-white transition">Twitter</a>
                 <a href="#" className="text-gray-500 hover:text-white transition">GitHub</a>
               </div>
             </div>
+            
+            <div>
+              <h4 className="text-lg font-bold mb-4 text-white">Quick Links</h4>
+              <ul className="space-y-2 text-gray-400">
+                <li><a href="#technology" className="hover:text-white transition">Technology</a></li>
+                <li><a href="#waitlist" className="hover:text-white transition">Waitlist</a></li>
+                <li><a href="#contact" className="hover:text-white transition">Contact</a></li>
+              </ul>
+            </div>
+            
+            <div>
+              <h4 className="text-lg font-bold mb-4 text-white">Legal</h4>
+              <ul className="space-y-2 text-gray-400">
+                <li><a href="#" className="hover:text-white transition">Privacy Policy</a></li>
+                <li><a href="#" className="hover:text-white transition">Terms of Service</a></li>
+                <li><a href="#" className="hover:text-white transition">Cookie Policy</a></li>
+              </ul>
+            </div>
           </div>
           
-          <div className="pt-8 border-t border-gray-800 text-center text-gray-500">
-            <p>© {new Date().getFullYear()} RaziaTech Quantum. All rights reserved.</p>
+          <div className="pt-8 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center">
+            <p className="text-gray-500 mb-4 md:mb-0">
+              © {new Date().getFullYear()} RaziaTech Quantum. All rights reserved.
+            </p>
+            <div className="text-sm text-gray-500">
+              Made with ⚡ for the quantum future
+            </div>
           </div>
         </div>
       </footer>
