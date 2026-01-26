@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { sendWelcomeEmail } from '@/lib/email'
 
 export async function GET() {
   try {
@@ -14,8 +15,7 @@ export async function GET() {
     
     if (error) {
       console.error('GET Error:', error)
-      // Jika table tidak ada, return 0
-      if (error.code === '42P01') { // table doesn't exist
+      if (error.code === '42P01') {
         return NextResponse.json({
           success: true,
           total_subscribers: 0,
@@ -48,12 +48,12 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { email, name, company, role, industry } = body
+    const { email, name, company, role, industry, company_size, use_case } = body
 
     // Validation
     if (!email || !name || !company || !role || !industry) {
       return NextResponse.json(
-        { success: false, error: 'All fields required' },
+        { success: false, error: 'All required fields must be filled' },
         { status: 400 }
       )
     }
@@ -64,9 +64,9 @@ export async function POST(request: Request) {
     const { createClient } = await import('@supabase/supabase-js')
     const supabase = createClient(supabaseUrl, supabaseKey)
     
-    console.log('🔄 Inserting:', { email, name, company })
+    console.log('🔄 Processing waitlist submission:', { email, name, company })
     
-    // Coba insert dengan error handling
+    // Insert to database
     const { data, error } = await supabase
       .from('waitlist_subscribers')
       .insert({
@@ -75,6 +75,8 @@ export async function POST(request: Request) {
         company: company.trim(),
         role: role.trim(),
         industry: industry.trim(),
+        company_size: company_size?.trim() || null,
+        use_case: use_case?.trim() || null,
         subscribed_at: new Date().toISOString(),
         status: 'confirmed'
       })
@@ -82,22 +84,14 @@ export async function POST(request: Request) {
       .single()
     
     if (error) {
-      console.error('❌ Insert Error Details:', {
+      console.error('❌ Database Error:', {
         code: error.code,
         message: error.message,
-        details: error.details,
-        hint: error.hint
+        details: error.details
       })
       
-      // Handle specific errors
-      if (error.code === '42501') {
-        console.error('🔒 RLS Error - need to disable RLS in Supabase')
-      } else if (error.code === '42P01') {
-        console.error('📋 TABLE DOES NOT EXIST - need to create table')
-      } else if (error.code === '42703') {
-        console.error('🗂️ COLUMN MISSING - table structure mismatch')
-      } else if (error.code === '23505') {
-        // Duplicate email - return success
+      // Handle duplicate email
+      if (error.code === '23505') {
         return NextResponse.json({
           success: true,
           message: 'You are already on our waitlist!',
@@ -109,30 +103,52 @@ export async function POST(request: Request) {
       throw error
     }
     
-    console.log('✅ Saved to Supabase! ID:', data?.id)
+    console.log('✅ Saved to database! ID:', data.id)
+    
+    // ========== EMAIL INTEGRATION ==========
+    // Send welcome email ASYNC (don't wait for it)
+    try {
+      sendWelcomeEmail(email, name)
+        .then(result => {
+          if (result.success) {
+            console.log('✅ Welcome email sent to:', email)
+          } else {
+            console.error('❌ Email failed:', result.error)
+          }
+        })
+        .catch(emailError => {
+          console.error('❌ Email send error:', emailError)
+        })
+    } catch (emailError) {
+      console.error('❌ Email initialization error:', emailError)
+    }
+    // =======================================
     
     return NextResponse.json({
       success: true,
-      message: 'Successfully added to waitlist!',
+      message: 'Successfully added to waitlist! Check your email for confirmation.',
       storage: 'supabase',
-      data: { id: data?.id, email: data?.email }
+      data: { id: data.id }
     })
     
   } catch (error) {
-    console.error('💥 POST Catch Error:', error)
+    console.error('💥 API Error:', error)
     
-    // Still log the submission
+    // Fallback logging
     try {
-      const { email, name, company } = await request.json()
-      console.log('📝 Fallback - Logged submission:', { email, name, company, timestamp: new Date().toISOString() })
+      const body = await request.json()
+      console.log('📝 Fallback logging:', { 
+        email: body.email, 
+        name: body.name,
+        timestamp: new Date().toISOString() 
+      })
     } catch { /* ignore */ }
     
     return NextResponse.json({
       success: true,
-      message: 'Thank you for joining! We\'ll save your details shortly.',
+      message: 'Thank you for joining! We\'ll save your details and send confirmation shortly.',
       storage: 'log-only',
-      error: error instanceof Error ? error.message : 'Unknown error',
-      note: 'Database update pending'
+      error: error instanceof Error ? error.message : 'Unknown error'
     })
   }
 }
