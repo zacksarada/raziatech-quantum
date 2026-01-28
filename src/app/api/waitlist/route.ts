@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { sendWelcomeEmail } from '@/lib/email'; // ✅ IMPORT YANG BENAR
+// Email temporarily disabled for build fix
 
 // Initialize Supabase
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -46,7 +46,7 @@ export async function POST(request: Request) {
         referrer_code: referrer_code || null,
         referral_code,
         subscribed_at: new Date().toISOString(),
-        email_sent: false,
+        email_sent: false,  // Set false karena email disabled
         email_opened: false,
       }])
       .select()
@@ -60,17 +60,9 @@ export async function POST(request: Request) {
       );
     }
 
-    // ✅ GANTI FUNCTION CALL DI SINI
-    sendWelcomeEmail(email, name || '')  // ✅ NAMA FUNCTION YANG BENAR
-      .then(async (result) => {
-        if (result.success) {
-          await supabase
-            .from('waitlist_subscribers')
-            .update({ email_sent: true })
-            .eq('id', data.id);
-        }
-      })
-      .catch(console.error);
+    // Email simulation (temporarily disabled)
+    console.log(`[EMAIL SIMULATION] Subscriber added: ${email}, Name: ${name || 'N/A'}`);
+    // Email functionality will be added back later
 
     // If referrer exists, update their count
     if (referrer_code) {
