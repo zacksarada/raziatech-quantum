@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { sendWaitlistConfirmation } from '@/lib/email';
+import { sendWelcomeEmail } from '@/lib/email'; // ✅ IMPORT YANG BENAR
 
 // Initialize Supabase
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -60,8 +60,8 @@ export async function POST(request: Request) {
       );
     }
 
-    // Send welcome email (async, don't wait)
-    sendWaitlistConfirmation(email, name)
+    // ✅ GANTI FUNCTION CALL DI SINI
+    sendWelcomeEmail(email, name || '')  // ✅ NAMA FUNCTION YANG BENAR
       .then(async (result) => {
         if (result.success) {
           await supabase
