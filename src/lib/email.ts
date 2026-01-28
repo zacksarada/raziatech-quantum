@@ -1,13 +1,24 @@
-// Pastikan ini isi email.ts - PAKAI FETCH, BUKAN RESEND PACKAGE
+// src/lib/email.ts - MINIMAL WORKING VERSION
 export async function sendWelcomeEmail(email: string, name: string) {
   try {
-    // Log jika RESEND_API_KEY tidak ada
+    console.log(\`[EMAIL] Would send welcome email to: \${email}, Name: \${name}\`);
+    
+    // Simulation mode jika tidak ada API key
     if (!process.env.RESEND_API_KEY) {
-      console.warn('⚠️ RESEND_API_KEY not set, email simulation only');
-      console.log(\`[EMAIL SIM] Would send to: ${email}, Name: ${name}\`);
+      console.log('[EMAIL SIMULATION] RESEND_API_KEY not set');
       return { success: true, simulated: true };
     }
-
+    
+    // HTML email content (sederhana)
+    const htmlContent = \`
+    <div style="font-family: sans-serif; padding: 20px;">
+      <h2>Welcome to RaziaTech Quantum!</h2>
+      <p>Hi \${name || 'there'},</p>
+      <p>Thank you for joining our waitlist.</p>
+      <p>We'll notify you when we launch!</p>
+      <p>Best,<br>The RaziaTech Team</p>
+    </div>\`;
+    
     const response = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
@@ -17,40 +28,27 @@ export async function sendWelcomeEmail(email: string, name: string) {
       body: JSON.stringify({
         from: process.env.EMAIL_FROM || 'onboarding@resend.dev',
         to: email,
-        subject: '🚀 Welcome to RaziaTech Quantum Waitlist!',
-        html: \`
-          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-            <div style="background: linear-gradient(135deg, #06b6d4, #8b5cf6); color: white; padding: 40px; text-align: center; border-radius: 10px 10px 0 0;">
-              <h1 style="margin: 0; font-size: 32px;">Welcome to the Quantum Revolution!</h1>
-            </div>
-            <div style="padding: 30px; background: #f9fafb;">
-              <p>Hi <strong>\${name || 'there'}</strong>,</p>
-              <p>Thank you for joining the RaziaTech Quantum waitlist.</p>
-              <p>You're now part of an exclusive group preparing for the quantum era.</p>
-              <p>We'll notify you when early access becomes available.</p>
-              <p>Best regards,<br><strong>The RaziaTech Quantum Team</strong></p>
-            </div>
-          </div>
-        \`,
-        text: \`Welcome \${name || 'there'}!\\n\\nThank you for joining the RaziaTech Quantum waitlist.\\n\\nWe'll notify you when early access becomes available.\\n\\nBest,\\nThe RaziaTech Quantum Team\`
+        subject: 'Welcome to RaziaTech Quantum Waitlist!',
+        html: htmlContent,
+        text: \`Welcome \${name || 'there'} to RaziaTech Quantum! We'll notify you when we launch.\`
       }),
     });
-
+    
     const data = await response.json();
     
     if (response.ok) {
-      console.log('✅ Email sent to:', email);
+      console.log('✅ Email sent:', data.id);
       return { success: true, data };
     } else {
-      console.error('❌ Email API error:', data);
+      console.error('❌ Email error:', data);
       return { success: false, error: data };
     }
   } catch (error) {
-    console.error('❌ Email fetch error:', error);
+    console.error('❌ Email exception:', error);
     return { success: false, error };
   }
 }
 
-// ✅ TAMBAHKAN ALIAS untuk backward compatibility
+// Alias functions
 export const sendWaitlistEmail = sendWelcomeEmail;
 export const sendWaitlistConfirmation = sendWelcomeEmail;
