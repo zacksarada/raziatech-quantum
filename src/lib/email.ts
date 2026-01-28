@@ -4,7 +4,7 @@ export async function sendWelcomeEmail(email: string, name: string) {
     // Log jika RESEND_API_KEY tidak ada
     if (!process.env.RESEND_API_KEY) {
       console.warn('⚠️ RESEND_API_KEY not set, email simulation only');
-      console.log(\`[EMAIL SIM] Would send to: \${email}, Name: \${name}\`);
+      console.log(\`[EMAIL SIM] Would send to: ${email}, Name: ${name}\`);
       return { success: true, simulated: true };
     }
 
