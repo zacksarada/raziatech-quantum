@@ -560,7 +560,7 @@ export default function Home() {
                 <div className="space-y-6">
                   {[
                     {
-                      icon: <Mail className="w-6 h-6" />,
+                      icon: <Envelope className="w-6 h-6" />,
                       title: "Email",
                       content: "contact@raziatech-quantum.com",
                       sub: "Response within 24 hours"
