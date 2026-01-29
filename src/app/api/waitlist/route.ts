@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-// Email temporarily disabled for build fix
 
 // Initialize Supabase
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -9,7 +8,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 export async function POST(request: Request) {
   try {
-    const { email, name, referral_source = 'direct', referrer_code } = await request.json();
+    const { email, name, referral_source = 'direct', referrer_code, interest } = await request.json();
 
     // Validation
     if (!email || !email.includes('@')) {
@@ -42,11 +41,12 @@ export async function POST(request: Request) {
       .insert([{
         email: email.toLowerCase(),
         name: name || null,
+        interest: interest || 'learning', // NEW: Add interest field
         referral_source,
         referrer_code: referrer_code || null,
         referral_code,
         subscribed_at: new Date().toISOString(),
-        email_sent: false,  // Set false karena email disabled
+        email_sent: false,
         email_opened: false,
       }])
       .select()
@@ -60,9 +60,8 @@ export async function POST(request: Request) {
       );
     }
 
-    // Email simulation (temporarily disabled)
-    console.log(`[EMAIL SIMULATION] Subscriber added: ${email}, Name: ${name || 'N/A'}`);
-    // Email functionality will be added back later
+    // Email simulation
+    console.log(`[EMAIL SIMULATION] Subscriber added: ${email}, Interest: ${interest || 'learning'}`);
 
     // If referrer exists, update their count
     if (referrer_code) {
@@ -103,6 +102,7 @@ export async function GET(request: Request) {
     const secret = searchParams.get('secret');
     const format = searchParams.get('format');
     const exportParam = searchParams.get('export');
+    const admin = searchParams.get('admin'); // NEW: Admin flag
     
     // Public endpoint untuk stats (tanpa secret)
     if (!secret) {
@@ -127,13 +127,15 @@ export async function GET(request: Request) {
       });
     }
     
-    // Admin endpoint (butuh secret)
+    // Verify admin secret
     if (secret !== process.env.ADMIN_SECRET) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' }, 
         { status: 401 }
       );
     }
+    
+    // ========== ENHANCED ADMIN ENDPOINT ==========
     
     // Get all subscribers for admin
     const { data, error } = await supabase
@@ -151,13 +153,14 @@ export async function GET(request: Request) {
     
     // Format 1: CSV Export
     if (exportParam === 'csv') {
-      const headers = ['ID', 'Email', 'Name', 'Referral Source', 'Referral Code', 'Referrer Code', 'Subscribed At', 'Email Sent', 'Email Opened', 'Referral Count'];
+      const headers = ['ID', 'Email', 'Name', 'Interest', 'Referral Source', 'Referral Code', 'Referrer Code', 'Subscribed At', 'Email Sent', 'Email Opened', 'Referral Count'];
       const csvData = [
         headers.join(','),
         ...data.map(sub => [
           sub.id,
           `"${sub.email}"`,
           `"${sub.name || ''}"`,
+          `"${sub.interest || 'learning'}"`, // NEW: Include interest
           `"${sub.referral_source || ''}"`,
           `"${sub.referral_code || ''}"`,
           `"${sub.referrer_code || ''}"`,
@@ -171,7 +174,7 @@ export async function GET(request: Request) {
       return new Response(csvData, {
         headers: {
           'Content-Type': 'text/csv',
-          'Content-Disposition': 'attachment; filename="waitlist-subscribers.csv"'
+          'Content-Disposition': `attachment; filename="waitlist-export-${new Date().toISOString().split('T')[0]}.csv"`
         }
       });
     }
@@ -181,16 +184,63 @@ export async function GET(request: Request) {
       return NextResponse.json(data);
     }
     
-    // Format 3: Dashboard format (DEFAULT) - dengan metadata
+    // Format 3: Enhanced Dashboard format dengan analytics
+    // Calculate analytics
+    const total = data?.length || 0;
+    const emailsSent = data?.filter(s => s.email_sent).length || 0;
+    const emailsOpened = data?.filter(s => s.email_opened).length || 0;
+    
+    // NEW: Interest distribution
+    const interestDistribution = data?.reduce((acc: Record<string, number>, curr) => {
+      const interest = curr.interest || 'learning';
+      acc[interest] = (acc[interest] || 0) + 1;
+      return acc;
+    }, {}) || {};
+    
+    // NEW: Daily signups (last 7 days)
+    const lastWeek = new Date();
+    lastWeek.setDate(lastWeek.getDate() - 7);
+    
+    const dailySignups = data
+      ?.filter(sub => new Date(sub.subscribed_at) >= lastWeek)
+      ?.reduce((acc: Record<string, number>, curr) => {
+        const date = new Date(curr.subscribed_at).toISOString().split('T')[0];
+        acc[date] = (acc[date] || 0) + 1;
+        return acc;
+      }, {}) || {};
+    
+    // NEW: Today's signups
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    const todaySignups = data?.filter(sub => {
+      const date = new Date(sub.subscribed_at);
+      return date >= today && date < tomorrow;
+    }).length || 0;
+    
     return NextResponse.json({
       success: true,
       data: data || [],
-      total: data?.length || 0,
-      summary: {
-        total_subscribers: data?.length || 0,
-        remaining_spots: 1000 - (data?.length || 0),
-        emails_sent: data?.filter(s => s.email_sent).length || 0,
-        emails_opened: data?.filter(s => s.email_opened).length || 0
+      total,
+      pagination: {
+        page: 1,
+        limit: 100,
+        total,
+        totalPages: Math.ceil(total / 100)
+      },
+      analytics: {
+        total_subscribers: total,
+        today_signups: todaySignups,
+        remaining_spots: 1000 - total,
+        emails_sent: emailsSent,
+        emails_opened: emailsOpened,
+        open_rate: emailsSent > 0 ? Math.round((emailsOpened / emailsSent) * 100) : 0,
+        interest_distribution: interestDistribution,
+        daily_signups: Object.entries(dailySignups)
+          .map(([date, count]) => ({ date, count }))
+          .sort((a, b) => a.date.localeCompare(b.date))
       },
       timestamp: new Date().toISOString()
     });
