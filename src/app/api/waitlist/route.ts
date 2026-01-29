@@ -1,129 +1,15 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+// Email temporarily disabled for build fix
 
-// Helper untuk generate referral code
-function generateReferralCode(): string {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  let code = '';
-  for (let i = 0; i < 8; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return code;
-}
+// Initialize Supabase
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const supabase = createClient(supabaseUrl, supabaseKey);
 
-// ================= GET HANDLER =================
-export async function GET(request: NextRequest) {
+export async function POST(request: Request) {
   try {
-    const { searchParams } = new URL(request.url);
-    const secret = searchParams.get('secret');
-    const admin = searchParams.get('admin');
-
-    console.log('API Called with:', { 
-      hasSecret: !!secret, 
-      isAdmin: !!admin,
-      hasSupabaseUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
-      hasSupabaseKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-    });
-
-    // Check admin secret (only for admin requests)
-    const adminSecret = process.env.ADMIN_SECRET;
-    
-    if (admin === 'true' && secret !== adminSecret) {
-      console.log('Unauthorized admin access attempt');
-      return NextResponse.json(
-        { error: 'Unauthorized', message: 'Invalid admin secret' },
-        { status: 401 }
-      );
-    }
-
-    // Initialize Supabase
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    
-    if (!supabaseUrl || !supabaseKey) {
-      console.error('Missing Supabase configuration:', {
-        url: supabaseUrl ? 'Set' : 'Missing',
-        key: supabaseKey ? 'Set' : 'Missing'
-      });
-      return NextResponse.json(
-        { 
-          error: 'Configuration Error',
-          message: 'Supabase environment variables are not properly configured.',
-          details: {
-            hasUrl: !!supabaseUrl,
-            hasKey: !!supabaseKey
-          }
-        },
-        { status: 500 }
-      );
-    }
-
-    console.log('Connecting to Supabase with URL:', supabaseUrl.substring(0, 30) + '...');
-
-    // FIXED: Gunakan type assertion karena sudah divalidasi
-    const supabase = createClient(
-      supabaseUrl as string, 
-      supabaseKey as string
-    );
-    
-    // Test connection first
-    const { data: testData, error: testError } = await supabase
-      .from('waitlist')
-      .select('count', { count: 'exact', head: true });
-
-    if (testError) {
-      console.error('Supabase connection error:', testError);
-      return NextResponse.json(
-        { 
-          error: 'Database Error',
-          message: 'Failed to connect to Supabase database',
-          details: testError.message
-        },
-        { status: 500 }
-      );
-    }
-
-    console.log('Supabase connection successful, fetching data...');
-    
-    // Fetch all subscribers
-    const { data: subscribers, error } = await supabase
-      .from('waitlist')
-      .select('*')
-      .order('subscribed_at', { ascending: false });
-
-    if (error) {
-      console.error('Supabase query error:', error);
-      throw error;
-    }
-
-    console.log(`Fetched ${subscribers?.length || 0} subscribers`);
-    
-    return NextResponse.json({ 
-      success: true,
-      subscribers: subscribers || [],
-      count: subscribers?.length || 0,
-      timestamp: new Date().toISOString(),
-      demo: false
-    });
-    
-  } catch (error: any) {
-    console.error('API Error:', error);
-    return NextResponse.json(
-      { 
-        error: 'Internal Server Error',
-        message: error.message || 'An unexpected error occurred',
-        demo: true
-      },
-      { status: 500 }
-    );
-  }
-}
-
-// ================= POST HANDLER =================
-export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json();
-    const { email, name, company, role, industry, interest, referral_source, referrer_code } = body;
+    const { email, name, referral_source = 'direct', referrer_code } = await request.json();
 
     // Validation
     if (!email || !email.includes('@')) {
@@ -133,168 +19,257 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Initialize Supabase
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    
-    if (!supabaseUrl || !supabaseKey) {
-      console.error('Missing Supabase environment variables');
+    // Check existing
+    const { data: existing } = await supabase
+      .from('waitlist_subscribers')
+      .select('id')
+      .eq('email', email.toLowerCase())
+      .single();
+
+    if (existing) {
       return NextResponse.json(
-        { error: 'Database not configured' },
+        { success: false, message: 'Email already registered', code: 'DUPLICATE' },
+        { status: 200 }
+      );
+    }
+
+    // Generate referral code
+    const referral_code = generateReferralCode();
+
+    // Insert to database
+    const { data, error } = await supabase
+      .from('waitlist_subscribers')
+      .insert([{
+        email: email.toLowerCase(),
+        name: name || null,
+        referral_source,
+        referrer_code: referrer_code || null,
+        referral_code,
+        subscribed_at: new Date().toISOString(),
+        email_sent: false,  // Set false karena email disabled
+        email_opened: false,
+      }])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Database error:', error);
+      return NextResponse.json(
+        { success: false, error: 'Failed to save subscription' },
         { status: 500 }
       );
     }
 
-    // FIXED: Gunakan type assertion karena sudah divalidasi
-    const supabase = createClient(
-      supabaseUrl as string, 
-      supabaseKey as string
-    );
-    
-    // Check if email already exists
-    const { data: existing, error: checkError } = await supabase
-      .from('waitlist')
-      .select('id')
-      .eq('email', email.toLowerCase())
-      .maybeSingle();
+    // Email simulation (temporarily disabled)
+    console.log(`[EMAIL SIMULATION] Subscriber added: ${email}, Name: ${name || 'N/A'}`);
+    // Email functionality will be added back later
 
-    if (checkError) {
-      console.error('Check email error:', checkError);
+    // If referrer exists, update their count
+    if (referrer_code) {
+      await supabase
+        .from('waitlist_subscribers')
+        .update({
+          referral_count: supabase.rpc('increment', { x: 1 })
+        })
+        .eq('referral_code', referrer_code);
     }
 
-    if (existing) {
-      return NextResponse.json(
-        { error: 'Email already registered' },
-        { status: 400 }
-      );
-    }
-
-    // Get total count for position
-    const { count } = await supabase
-      .from('waitlist')
-      .select('*', { count: 'exact', head: true });
-
-    // Generate referral code
-    const referral_code = generateReferralCode();
-    const position = (count || 0) + 1;
-    
-    // Insert new subscriber
-    const { data, error } = await supabase
-      .from('waitlist')
-      .insert([
-        {
-          email: email.toLowerCase(),
-          name: name || null,
-          company: company || null,
-          role: role || null,
-          industry: industry || null,
-          interest: interest || 'learning',
-          referral_source: referral_source || 'website',
-          referrer_code: referrer_code || null,
-          referral_code,
-          subscribed_at: new Date().toISOString(),
-          status: 'pending',
-          position: position
-        }
-      ])
-      .select();
-
-    if (error) {
-      console.error('Supabase insert error:', error);
-      // Check if it's a duplicate email error
-      if (error.code === '23505') { // PostgreSQL unique violation
-        return NextResponse.json(
-          { error: 'Email already registered' },
-          { status: 400 }
-        );
-      }
-      throw error;
-    }
-
-    console.log(`Added subscriber: ${email}, Position: ${position}`);
+    // Get waitlist position
+    const position = await getWaitlistPosition(data.id);
 
     return NextResponse.json({
       success: true,
       message: 'Successfully added to waitlist!',
       data: {
-        ...data[0],
-        position,
-        total: position
-      }
+        ...data,
+        referral_code,
+        position
+      },
+      total: position + 1
     }, { status: 201 });
-    
-  } catch (error: any) {
-    console.error('POST Error:', error);
+
+  } catch (error) {
+    console.error('Unexpected error:', error);
     return NextResponse.json(
-      { error: 'Failed to add to waitlist' },
+      { success: false, error: 'Internal server error' },
       { status: 500 }
     );
   }
 }
 
-// ================= DELETE HANDLER =================
-export async function DELETE(request: NextRequest) {
+export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const id = searchParams.get('id');
     const secret = searchParams.get('secret');
-
-    // Check admin secret
-    const adminSecret = process.env.ADMIN_SECRET;
-    if (secret !== adminSecret) {
+    const format = searchParams.get('format');
+    const exportParam = searchParams.get('export');
+    
+    // Public endpoint untuk stats (tanpa secret)
+    if (!secret) {
+      const { count, error: countError } = await supabase
+        .from('waitlist_subscribers')
+        .select('*', { count: 'exact', head: true });
+      
+      if (countError) {
+        console.error('Count error:', countError);
+        return NextResponse.json(
+          { success: false, error: 'Failed to get count' },
+          { status: 500 }
+        );
+      }
+      
+      return NextResponse.json({
+        success: true,
+        total_subscribers: count || 0,
+        remaining_spots: 1000 - (count || 0),
+        storage: 'supabase',
+        timestamp: new Date().toISOString()
+      });
+    }
+    
+    // Admin endpoint (butuh secret)
+    if (secret !== process.env.ADMIN_SECRET) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { success: false, error: 'Unauthorized' }, 
         { status: 401 }
       );
     }
+    
+    // Get all subscribers for admin
+    const { data, error } = await supabase
+      .from('waitlist_subscribers')
+      .select('*')
+      .order('subscribed_at', { ascending: false });
+    
+    if (error) {
+      console.error('Database error:', error);
+      return NextResponse.json(
+        { success: false, error: 'Failed to fetch data' },
+        { status: 500 }
+      );
+    }
+    
+    // Format 1: CSV Export
+    if (exportParam === 'csv') {
+      const headers = ['ID', 'Email', 'Name', 'Referral Source', 'Referral Code', 'Referrer Code', 'Subscribed At', 'Email Sent', 'Email Opened', 'Referral Count'];
+      const csvData = [
+        headers.join(','),
+        ...data.map(sub => [
+          sub.id,
+          `"${sub.email}"`,
+          `"${sub.name || ''}"`,
+          `"${sub.referral_source || ''}"`,
+          `"${sub.referral_code || ''}"`,
+          `"${sub.referrer_code || ''}"`,
+          `"${sub.subscribed_at}"`,
+          sub.email_sent ? 'Yes' : 'No',
+          sub.email_opened ? 'Yes' : 'No',
+          sub.referral_count || 0
+        ].join(','))
+      ].join('\n');
+      
+      return new Response(csvData, {
+        headers: {
+          'Content-Type': 'text/csv',
+          'Content-Disposition': 'attachment; filename="waitlist-subscribers.csv"'
+        }
+      });
+    }
+    
+    // Format 2: Raw array (backward compatibility)
+    if (format === 'raw') {
+      return NextResponse.json(data);
+    }
+    
+    // Format 3: Dashboard format (DEFAULT) - dengan metadata
+    return NextResponse.json({
+      success: true,
+      data: data || [],
+      total: data?.length || 0,
+      summary: {
+        total_subscribers: data?.length || 0,
+        remaining_spots: 1000 - (data?.length || 0),
+        emails_sent: data?.filter(s => s.email_sent).length || 0,
+        emails_opened: data?.filter(s => s.email_opened).length || 0
+      },
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error('Unexpected error:', error);
+    return NextResponse.json(
+      { success: false, error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
 
+// DELETE handler untuk admin
+export async function DELETE(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const secret = searchParams.get('secret');
+    const id = searchParams.get('id');
+    
+    // Verify admin secret
+    if (!secret || secret !== process.env.ADMIN_SECRET) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' }, 
+        { status: 401 }
+      );
+    }
+    
     if (!id) {
       return NextResponse.json(
-        { error: 'ID is required' },
+        { success: false, error: 'ID is required' }, 
         { status: 400 }
       );
     }
-
-    // Initialize Supabase
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
     
-    if (!supabaseUrl || !supabaseKey) {
-      return NextResponse.json(
-        { error: 'Database not configured' },
-        { status: 500 }
-      );
-    }
-
-    // FIXED: Gunakan type assertion
-    const supabase = createClient(
-      supabaseUrl as string, 
-      supabaseKey as string
-    );
-
+    // Delete subscriber
     const { error } = await supabase
-      .from('waitlist')
+      .from('waitlist_subscribers')
       .delete()
       .eq('id', id);
-
+    
     if (error) {
       console.error('Delete error:', error);
       return NextResponse.json(
-        { error: 'Failed to delete subscriber' },
+        { success: false, error: 'Failed to delete' },
         { status: 500 }
       );
     }
-
+    
     return NextResponse.json({
       success: true,
       message: 'Subscriber deleted successfully'
     });
     
-  } catch (error: any) {
-    console.error('DELETE Error:', error);
+  } catch (error) {
+    console.error('Unexpected error:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { success: false, error: 'Internal server error' },
       { status: 500 }
     );
   }
+}
+
+// Helper functions
+function generateReferralCode(): string {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let code = '';
+  for (let i = 0; i < 8; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+}
+
+async function getWaitlistPosition(userId: string): Promise<number> {
+  const { count, error } = await supabase
+    .from('waitlist_subscribers')
+    .select('id', { count: 'exact', head: true })
+    .lt('subscribed_at', new Date().toISOString());
+
+  if (error || count === null) return 0;
+  return count;
 }
