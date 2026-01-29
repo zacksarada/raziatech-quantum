@@ -4,6 +4,7 @@
 import { 
   ArrowRight, Zap, Sparkles, Cpu, ShieldCheck, 
   LineChart, Globe, Brain, Server, ChevronRight,
+  Mail, MapPin, Phone, Send,
   Users, Clock, BarChart3, Lock, Cloud,
   Rocket, Target, Gem, Award, Star
 } from 'lucide-react'
@@ -560,7 +561,7 @@ export default function Home() {
                 <div className="space-y-6">
                   {[
                     {
-                      icon: <Envelope className="w-6 h-6" />,
+                      icon: <Mail className="w-6 h-6" />,
                       title: "Email",
                       content: "contact@raziatech-quantum.com",
                       sub: "Response within 24 hours"
