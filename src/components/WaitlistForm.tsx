@@ -1,294 +1,161 @@
+// src/components/WaitlistForm.tsx - UPDATED VERSION
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Send, CheckCircle, Loader2, AlertCircle, Users } from 'lucide-react'
+import { useState } from 'react'
+import { Send, CheckCircle, Brain, Code, Rocket } from 'lucide-react'
 
 export default function WaitlistForm() {
-  const [formData, setFormData] = useState({
-    email: '',
-    name: '',
-    company: '',
-    role: '',
-    industry: '',
-  })
-  
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isSuccess, setIsSuccess] = useState(false)
-  const [error, setError] = useState('')
-  const [remainingSpots, setRemainingSpots] = useState(247)
-  const [totalSubscribers, setTotalSubscribers] = useState(0)
-
-  const industries = [
-    'Banking & Finance',
-    'Telecommunications',
-    'Logistics & Supply Chain',
-    'Healthcare & Biotech',
-    'Energy & Utilities',
-    'E-commerce & Retail',
-    'Manufacturing',
-    'Government',
-    'Technology',
-    'Other'
-  ]
-
-  // Fetch stats on load
-  useEffect(() => {
-    fetchStats()
-  }, [])
-
-  const fetchStats = async () => {
-    try {
-      const response = await fetch('/api/waitlist')
-      if (response.ok) {
-        const data = await response.json()
-        setTotalSubscribers(data.total_subscribers || 0)
-        setRemainingSpots(data.remaining_spots || 247)
-      }
-    } catch (err) {
-      // Fallback values if API fails
-      console.log('Using fallback stats')
-    }
-  }
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value }))
-    setError('')
-  }
+  const [email, setEmail] = useState('')
+  const [name, setName] = useState('')
+  const [interest, setInterest] = useState('learning') // Default to learning
+  const [submitted, setSubmitted] = useState(false)
+  const [loading, setLoading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
-    // Client-side validation
-    if (!formData.name.trim()) {
-      setError('Name is required')
-      return
-    }
-    
-    if (!formData.email.trim()) {
-      setError('Email is required')
-      return
-    }
-    
-    if (!formData.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
-      setError('Please enter a valid email address')
-      return
-    }
-    
-    if (!formData.company.trim()) {
-      setError('Company name is required')
-      return
-    }
-    
-    if (!formData.role.trim()) {
-      setError('Role is required')
-      return
-    }
-    
-    if (!formData.industry) {
-      setError('Please select your industry')
-      return
-    }
-
-    setIsSubmitting(true)
-    setError('')
+    setLoading(true)
 
     try {
       const response = await fetch('/api/waitlist', {
         method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData)
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          email, 
+          name,
+          referral_source: 'website',
+          interest // Send interest to API
+        }),
       })
 
-      const result = await response.json()
-
-      // Always show success to user, even if API has issues
-      setIsSuccess(true)
+      const data = await response.json()
       
-      // Update stats
-      fetchStats()
-      
-      // Reset form after success
-      setTimeout(() => {
-        setIsSuccess(false)
-        setFormData({
-          email: '',
-          name: '',
-          company: '',
-          role: '',
-          industry: '',
-        })
-      }, 3000)
-      
-    } catch (err) {
-      // Fallback: Still show success to user
-      console.log('API call failed, showing success anyway')
-      setIsSuccess(true)
-      setTimeout(() => setIsSuccess(false), 3000)
+      if (data.success) {
+        setSubmitted(true)
+        setEmail('')
+        setName('')
+        // Track conversion
+        console.log('Waitlist signup successful:', data)
+      } else {
+        alert(data.error || 'Something went wrong')
+      }
+    } catch (error) {
+      console.error('Error:', error)
+      alert('Failed to submit. Please try again.')
     } finally {
-      setIsSubmitting(false)
+      setLoading(false)
     }
   }
 
-  if (isSuccess) {
+  if (submitted) {
     return (
-      <div className="text-center p-8 rounded-2xl bg-gradient-to-br from-green-900/20 to-emerald-900/20 border border-green-800/50">
+      <div className="text-center p-8">
         <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-        <h3 className="text-2xl font-bold mb-2">Welcome to the Quantum Revolution!</h3>
+        <h3 className="text-2xl font-bold text-white mb-2">You're on the list! 🎉</h3>
         <p className="text-gray-300 mb-4">
-          Thank you <span className="font-semibold text-green-400">{formData.name}</span>!
+          Welcome to the quantum learning community! We'll email you when early access begins.
         </p>
-        <p className="text-gray-400">
-          We've added you to our exclusive waitlist.
-        </p>
-        <div className="mt-6 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gray-800/50">
-          <Users className="w-4 h-4" />
-          <span className="text-sm text-gray-300">
-            Total subscribers: <span className="font-bold">{totalSubscribers + 1}</span>
-          </span>
+        <div className="text-sm text-gray-400">
+          Check your inbox for confirmation
         </div>
       </div>
     )
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      {error && (
-        <div className="p-4 rounded-xl bg-red-900/20 border border-red-800/50">
-          <div className="flex items-center gap-2">
-            <AlertCircle className="w-5 h-5 text-red-400" />
-            <span className="text-red-300">{error}</span>
-          </div>
-        </div>
-      )}
-      
-      {/* Stats Display */}
-      <div className="flex items-center justify-between p-4 rounded-xl bg-gray-800/30 border border-gray-700">
-        <div className="text-center">
-          <div className="text-2xl font-bold text-cyan-400">{totalSubscribers}</div>
-          <div className="text-sm text-gray-400">Joined</div>
-        </div>
-        <div className="h-8 w-px bg-gray-700"></div>
-        <div className="text-center">
-          <div className="text-2xl font-bold text-purple-400">{remainingSpots}</div>
-          <div className="text-sm text-gray-400">Spots Left</div>
-        </div>
+    <div>
+      <div className="mb-8">
+        <h3 className="text-2xl font-bold text-white mb-2">
+          Join Quantum Learning Platform
+        </h3>
+        <p className="text-gray-400">
+          Get early access to tutorials, AI assistant, and IBM Quantum hardware.
+        </p>
       </div>
-      
-      <div className="grid md:grid-cols-2 gap-4">
+
+      <form onSubmit={handleSubmit} className="space-y-6">
         <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-2">
-            Full Name *
+          <label className="block text-sm font-medium text-gray-300 mb-2">
+            What interests you most?
           </label>
-          <input
-            type="text"
-            id="name"
-            name="name"
-            required
-            value={formData.name}
-            onChange={handleChange}
-            className="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all"
-            placeholder="John Doe"
-          />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+            {[
+              { id: 'learning', label: 'Learning', icon: Brain, color: 'from-blue-500 to-cyan-500' },
+              { id: 'development', label: 'Development', icon: Code, color: 'from-purple-500 to-pink-500' },
+              { id: 'enterprise', label: 'Enterprise', icon: Rocket, color: 'from-green-500 to-emerald-500' }
+            ].map((option) => (
+              <button
+                key={option.id}
+                type="button"
+                onClick={() => setInterest(option.id)}
+                className={`p-3 rounded-xl border-2 transition-all ${
+                  interest === option.id 
+                    ? `border-white bg-gradient-to-r ${option.color}`
+                    : 'border-gray-700 bg-gray-900/50 hover:border-gray-600'
+                }`}
+              >
+                <option.icon className={`w-5 h-5 mx-auto mb-2 ${
+                  interest === option.id ? 'text-white' : 'text-gray-400'
+                }`} />
+                <span className={`text-sm font-medium ${
+                  interest === option.id ? 'text-white' : 'text-gray-400'
+                }`}>
+                  {option.label}
+                </span>
+              </button>
+            ))}
+          </div>
         </div>
 
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
-            Work Email *
+          <label className="block text-sm font-medium text-gray-300 mb-2">
+            Email Address
           </label>
           <input
             type="email"
-            id="email"
-            name="email"
             required
-            value={formData.email}
-            onChange={handleChange}
-            className="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all"
-            placeholder="john@company.com"
-          />
-        </div>
-      </div>
-
-      <div className="grid md:grid-cols-2 gap-4">
-        <div>
-          <label htmlFor="company" className="block text-sm font-medium text-gray-300 mb-2">
-            Company Name *
-          </label>
-          <input
-            type="text"
-            id="company"
-            name="company"
-            required
-            value={formData.company}
-            onChange={handleChange}
-            className="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all"
-            placeholder="Your company"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@example.com"
+            className="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
 
         <div>
-          <label htmlFor="role" className="block text-sm font-medium text-gray-300 mb-2">
-            Your Role *
+          <label className="block text-sm font-medium text-gray-300 mb-2">
+            Full Name (Optional)
           </label>
           <input
             type="text"
-            id="role"
-            name="role"
-            required
-            value={formData.role}
-            onChange={handleChange}
-            className="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all"
-            placeholder="CTO, Head of Innovation, etc."
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="John Doe"
+            className="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
-      </div>
 
-      <div>
-        <label htmlFor="industry" className="block text-sm font-medium text-gray-300 mb-2">
-          Industry *
-        </label>
-        <select
-          id="industry"
-          name="industry"
-          required
-          value={formData.industry}
-          onChange={handleChange}
-          className="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all"
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold rounded-xl hover:opacity-90 transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <option value="">Select your industry</option>
-          {industries.map(industry => (
-            <option key={industry} value={industry}>{industry}</option>
-          ))}
-        </select>
-      </div>
+          {loading ? (
+            <>
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              Processing...
+            </>
+          ) : (
+            <>
+              <Send className="w-5 h-5" />
+              Join Early Access
+            </>
+          )}
+        </button>
 
-      <button
-        type="submit"
-        disabled={isSubmitting}
-        className="w-full py-4 bg-gradient-to-r from-cyan-500 to-purple-500 text-white font-semibold rounded-xl hover:opacity-90 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 group"
-      >
-        {isSubmitting ? (
-          <>
-            <Loader2 className="w-5 h-5 animate-spin" />
-            <span>Processing...</span>
-          </>
-        ) : (
-          <>
-            <span>Join Exclusive Waitlist</span>
-            <Send className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-          </>
-        )}
-      </button>
-
-      <div className="text-center">
-        <p className="text-xs text-gray-500">
-          By joining, you agree to receive updates about RaziaTech Quantum.
-          <br />
-          We respect your privacy. No spam, unsubscribe anytime.
+        <p className="text-xs text-gray-500 text-center">
+          By joining, you agree to our Terms and Privacy Policy. 
+          No spam, ever.
         </p>
-      </div>
-    </form>
+      </form>
+    </div>
   )
 }

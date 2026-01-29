@@ -1,74 +1,165 @@
-# Rename file API route
-mv src/app/api/waitlist/route.ts src/app/api/waitlist/route.ts.backup
+import { NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
+import { sendWaitlistConfirmation } from '@/lib/email';
 
-# Buat file API sederhana tanpa dependency
-cat > src/app/api/waitlist/route.ts << 'EOF'
-import { NextResponse } from 'next/server'
-
-// Simple mock database (resets on redeploy)
-let waitlistDB: any[] = []
-
-export async function GET() {
-  return NextResponse.json({
-    total_subscribers: waitlistDB.length,
-    remaining_spots: Math.max(0, 1000 - waitlistDB.length),
-    message: 'API working - In memory storage'
-  })
-}
+// Initialize Supabase
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json()
-    const { email, name, company, role, industry } = body
+    const { email, name, referral_source = 'direct', referrer_code } = await request.json();
 
-    // Basic validation
-    if (!email || !name || !company || !role || !industry) {
+    // Validation
+    if (!email || !email.includes('@')) {
       return NextResponse.json(
-        { error: 'All fields are required' },
+        { error: 'Valid email is required' },
         { status: 400 }
-      )
+      );
     }
 
-    // Check duplicate
-    const existing = waitlistDB.find(entry => entry.email === email)
+    // Check existing
+    const { data: existing } = await supabase
+      .from('waitlist_subscribers')
+      .select('id')
+      .eq('email', email.toLowerCase())
+      .single();
+
     if (existing) {
       return NextResponse.json(
-        { 
-          success: true, // Return success even if duplicate
-          message: 'You are already on our waitlist!' 
-        },
+        { message: 'Email already registered', code: 'DUPLICATE' },
         { status: 200 }
-      )
+      );
     }
 
-    // Add to memory
-    const newEntry = {
-      id: Date.now(),
-      email,
-      name,
-      company,
-      role,
-      industry,
-      timestamp: new Date().toISOString()
+    // Generate referral code
+    const referral_code = generateReferralCode();
+
+    // Insert to database
+    const { data, error } = await supabase
+      .from('waitlist_subscribers')
+      .insert([{
+        email: email.toLowerCase(),
+        name: name || null,
+        referral_source,
+        referrer_code: referrer_code || null,
+        referral_code,
+        subscribed_at: new Date().toISOString(),
+        email_sent: false,
+        email_opened: false,
+      }])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Database error:', error);
+      return NextResponse.json(
+        { error: 'Failed to save subscription' },
+        { status: 500 }
+      );
     }
 
-    waitlistDB.push(newEntry)
-    
-    // Log to Vercel console
-    console.log('🚀 New waitlist signup:', newEntry)
+    // Send welcome email (async, don't wait)
+    sendWaitlistConfirmation(email, name)
+      .then(async (result) => {
+        if (result.success) {
+          await supabase
+            .from('waitlist_subscribers')
+            .update({ email_sent: true })
+            .eq('id', data.id);
+        }
+      })
+      .catch(console.error);
+
+    // If referrer exists, update their count
+    if (referrer_code) {
+      await supabase
+        .from('waitlist_subscribers')
+        .update({
+          referral_count: supabase.rpc('increment', { x: 1 })
+        })
+        .eq('referral_code', referrer_code);
+    }
 
     return NextResponse.json({
       success: true,
       message: 'Successfully added to waitlist!',
-      position: waitlistDB.length
-    })
+      data: {
+        ...data,
+        referral_code,
+        position: await getWaitlistPosition(data.id)
+      }
+    }, { status: 201 });
 
   } catch (error) {
-    console.error('Error:', error)
+    console.error('Unexpected error:', error);
     return NextResponse.json(
-      { success: true, message: 'Thank you for joining!' }, // Always return success
-      { status: 200 }
-    )
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
   }
 }
-EOF
+
+export async function GET(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const secret = searchParams.get('secret');
+    
+    // Public endpoint untuk stats
+    if (!secret) {
+      const { count } = await supabase
+        .from('waitlist_subscribers')
+        .select('*', { count: 'exact', head: true });
+      
+      return NextResponse.json({
+        success: true,
+        total_subscribers: count || 0,
+        remaining_spots: 1000 - (count || 0),
+        storage: 'supabase'
+      });
+    }
+    
+    // Admin endpoint (butuh secret)
+    if (secret !== process.env.ADMIN_SECRET) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    
+    // Get all subscribers for admin
+    const { data, error } = await supabase
+      .from('waitlist_subscribers')
+      .select('*')
+      .order('subscribed_at', { ascending: false });
+    
+    if (error) throw error;
+    
+    return NextResponse.json(data);
+    
+  } catch (error) {
+    console.error('Error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+
+// Helper functions
+function generateReferralCode(): string {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let code = '';
+  for (let i = 0; i < 8; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+}
+
+async function getWaitlistPosition(userId: string): Promise<number> {
+  const { count, error } = await supabase
+    .from('waitlist_subscribers')
+    .select('*', { count: 'exact', head: true })
+    .lt('subscribed_at', new Date().toISOString());
+
+  if (error || count === null) return 0;
+  return count;
+}

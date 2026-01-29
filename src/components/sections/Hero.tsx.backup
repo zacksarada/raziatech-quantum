@@ -1,0 +1,100 @@
+// src/components/sections/Hero.tsx - UPDATED VERSION
+'use client'
+
+import { ArrowRight, Zap, Sparkles, Brain, Code } from 'lucide-react'
+
+export default function Hero() {
+  return (
+    <section className="relative overflow-hidden py-20 md:py-32">
+      {/* Background Effects */}
+      <div className="absolute inset-0">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+      </div>
+      
+      <div className="container mx-auto px-4 relative z-10">
+        <div className="max-w-5xl mx-auto text-center">
+          {/* Badge - Updated */}
+          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-900/20 to-purple-900/20 px-4 py-2 rounded-full mb-6 border border-blue-800/30">
+            <div className="flex items-center gap-2">
+              <Brain className="w-4 h-4 text-blue-400" />
+              <Code className="w-4 h-4 text-purple-400" />
+            </div>
+            <span className="text-sm font-medium text-blue-300">Human Vision + AI Execution</span>
+          </div>
+          
+          {/* Main Headline - COMPLETELY UPDATED */}
+          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
+            <span className="block bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500">
+              Master Quantum Computing
+            </span>
+            <span className="block text-white mt-2 md:mt-4">
+              with AI-Powered Learning
+            </span>
+          </h1>
+          
+          {/* Subtitle - UPDATED */}
+          <p className="text-xl text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed">
+            Learn quantum programming through interactive tutorials, AI code assistance, 
+            and hands-on simulations. No PhD required. Built for developers, by developers.
+          </p>
+          
+          {/* CTA Buttons - UPDATED */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+            <button className="group bg-gradient-to-r from-blue-600 to-purple-600 px-8 py-4 rounded-xl font-semibold hover:opacity-90 transition-all duration-300 flex items-center justify-center gap-2 hover:scale-[1.02] text-lg shadow-xl shadow-blue-500/20">
+              <span>Start Learning Free</span>
+              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            </button>
+            <button className="bg-gray-800/50 border border-gray-700 px-8 py-4 rounded-xl font-semibold hover:bg-gray-700/50 hover:border-blue-500 transition-all duration-300 text-lg">
+              <span className="flex items-center justify-center gap-2">
+                <Sparkles className="w-5 h-5" />
+                Explore Platform
+              </span>
+            </button>
+          </div>
+          
+          {/* Stats - COMPLETELY UPDATED */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto">
+            <div className="text-center p-5 rounded-xl bg-gradient-to-b from-gray-900/40 to-black/40 border border-gray-800 hover:border-blue-500/50 transition-all group">
+              <div className="text-3xl mb-2">📚</div>
+              <div className="text-2xl font-bold text-white mb-1">500+</div>
+              <div className="text-sm text-gray-400">Interactive Lessons</div>
+            </div>
+            
+            <div className="text-center p-5 rounded-xl bg-gradient-to-b from-gray-900/40 to-black/40 border border-gray-800 hover:border-purple-500/50 transition-all group">
+              <div className="text-3xl mb-2">🤖</div>
+              <div className="text-2xl font-bold text-white mb-1">AI-Powered</div>
+              <div className="text-sm text-gray-400">Code Assistant</div>
+            </div>
+            
+            <div className="text-center p-5 rounded-xl bg-gradient-to-b from-gray-900/40 to-black/40 border border-gray-800 hover:border-pink-500/50 transition-all group">
+              <div className="text-3xl mb-2">⚡</div>
+              <div className="text-2xl font-bold text-white mb-1">Real</div>
+              <div className="text-sm text-gray-400">Quantum Simulations</div>
+            </div>
+            
+            <div className="text-center p-5 rounded-xl bg-gradient-to-b from-gray-900/40 to-black/40 border border-gray-800 hover:border-green-500/50 transition-all group">
+              <div className="text-3xl mb-2">👥</div>
+              <div className="text-2xl font-bold text-white mb-1">Community</div>
+              <div className="text-sm text-gray-400">Peer Learning</div>
+            </div>
+          </div>
+          
+          {/* Trust Badges - OPTIONAL ADDITION */}
+          <div className="mt-12 pt-8 border-t border-gray-800/50">
+            <p className="text-gray-500 text-sm mb-4">Trusted by developers from</p>
+            <div className="flex flex-wrap justify-center gap-6 opacity-70">
+              <div className="text-gray-400">Startups</div>
+              <div className="text-gray-400">•</div>
+              <div className="text-gray-400">Universities</div>
+              <div className="text-gray-400">•</div>
+              <div className="text-gray-400">Tech Companies</div>
+              <div className="text-gray-400">•</div>
+              <div className="text-gray-400">Research Labs</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
