@@ -1,267 +1,256 @@
-// src/components/layout/Navigation.tsx
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import { Menu, X, Zap, ArrowRight, ChevronDown, Sparkles, Shield, Cpu, Lock } from 'lucide-react'
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { 
+  ShoppingBag, User, Search, Menu, X,
+  Home, BookOpen, Code, DollarSign,
+  ChevronDown, LogOut, Settings
+} from 'lucide-react';
 
 export default function Navigation() {
-  const [isOpen, setIsOpen] = useState(false)
-  const [scrolled, setScrolled] = useState(false)
-  const [activeDropdown, setActiveDropdown] = useState<string | null>(null)
-  const pathname = usePathname()
+  const pathname = usePathname();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [cartCount, setCartCount] = useState(0);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  const navigation = [
+    { name: 'Home', href: '/', icon: Home },
+    { name: 'Products', href: '/products', icon: ShoppingBag },
+    { name: 'Templates', href: '/products?type=template', icon: Code },
+    { name: 'Ebooks', href: '/products?type=ebook', icon: BookOpen },
+    { name: 'Affiliate', href: '/affiliate', icon: DollarSign },
+  ];
 
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20)
-    }
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
+    // Check cart
+    const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    const count = cart.reduce((sum: number, item: any) => sum + item.quantity, 0);
+    setCartCount(count);
 
-  const navLinks = [
-    {
-      label: 'Technology',
-      href: '/#technology',
-      icon: <Cpu className="w-4 h-4" />,
-      dropdown: [
-        { label: 'Quantum Processors', href: '/technology/processors' },
-        { label: 'Quantum Software', href: '/technology/software' },
-        { label: 'Quantum Networks', href: '/technology/networks' },
-        { label: 'Research & Development', href: '/technology/research' },
-      ]
-    },
-    {
-      label: 'Solutions',
-      href: '/#solutions',
-      icon: <Sparkles className="w-4 h-4" />,
-      dropdown: [
-        { label: 'Financial Services', href: '/solutions/finance' },
-        { label: 'Healthcare & Pharma', href: '/solutions/healthcare' },
-        { label: 'Logistics & Supply Chain', href: '/solutions/logistics' },
-        { label: 'Cybersecurity', href: '/solutions/security' },
-      ]
-    },
-    {
-      label: 'Resources',
-      href: '/resources',
-      icon: <Shield className="w-4 h-4" />,
-      dropdown: [
-        { label: 'Documentation', href: '/docs' },
-        { label: 'API Reference', href: '/api' },
-        { label: 'Case Studies', href: '/case-studies' },
-        { label: 'Blog', href: '/blog' },
-        { label: 'Whitepapers', href: '/whitepapers' },
-      ]
-    },
-    {
-      label: 'Pricing',
-      href: '/pricing',
-      icon: <Lock className="w-4 h-4" />
-    }
-  ]
+    // Check if admin
+    const secret = localStorage.getItem('admin_secret');
+    setIsAdmin(!!secret);
 
-  const toggleDropdown = (label: string) => {
-    setActiveDropdown(activeDropdown === label ? null : label)
-  }
+    // Listen for cart updates
+    const handleStorageChange = () => {
+      const updatedCart = JSON.parse(localStorage.getItem('cart') || '[]');
+      const updatedCount = updatedCart.reduce((sum: number, item: any) => sum + item.quantity, 0);
+      setCartCount(updatedCount);
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('admin_secret');
+    window.location.href = '/';
+  };
 
   return (
     <>
-      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-        scrolled 
-          ? 'bg-black/95 backdrop-blur-xl border-b border-gray-800/50 shadow-2xl shadow-black/50' 
-          : 'bg-transparent'
-      }`}>
-        <div className="max-w-7xl mx-auto px-4 py-3 lg:py-4">
-          <div className="flex items-center justify-between">
+      <nav className="sticky top-0 z-40 bg-white/95 backdrop-blur-sm border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
             {/* Logo */}
-            <Link 
-              href="/" 
-              className="flex items-center gap-3 group relative z-50"
-              onClick={() => setIsOpen(false)}
-            >
-              <div className="relative">
-                <div className="h-10 w-10 lg:h-12 lg:w-12 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-xl flex items-center justify-center animate-quantum group-hover:scale-110 transition-transform duration-300">
-                  <Zap className="h-5 w-5 lg:h-6 lg:w-6 text-white" />
+            <div className="flex items-center">
+              <Link href="/" className="flex items-center">
+                <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center mr-3">
+                  <span className="text-white font-bold text-sm">RZ</span>
                 </div>
-                <div className="absolute -inset-2 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-xl blur-lg opacity-30 group-hover:opacity-50 transition-opacity"></div>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-xl lg:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-500">
-                  RaziaTech Quantum
+                <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  RaziaTech
                 </span>
-                <span className="text-[10px] lg:text-xs text-cyan-400 font-medium tracking-wider">
-                  ENTERPRISE QUANTUM SOLUTIONS
-                </span>
-              </div>
-            </Link>
+              </Link>
+            </div>
 
             {/* Desktop Navigation */}
-            <div className="hidden lg:flex items-center gap-1">
-              {navLinks.map((item) => (
-                <div 
-                  key={item.label}
-                  className="relative group"
-                  onMouseEnter={() => setActiveDropdown(item.label)}
-                  onMouseLeave={() => setActiveDropdown(null)}
-                >
+            <div className="hidden md:flex items-center space-x-1">
+              {navigation.map((item) => {
+                const Icon = item.icon;
+                const isActive = pathname === item.href || 
+                  (item.href.includes('?') && pathname.startsWith(item.href.split('?')[0]));
+                
+                return (
                   <Link
+                    key={item.name}
                     href={item.href}
-                    className="flex items-center gap-2 px-4 py-3 text-gray-300 hover:text-white transition-all duration-300 group-hover:bg-gray-900/50 rounded-xl"
+                    className={`
+                      px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center
+                      ${isActive 
+                        ? 'text-blue-600 bg-blue-50' 
+                        : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
+                      }
+                    `}
                   >
-                    <span className="text-cyan-400 opacity-70 group-hover:opacity-100">
-                      {item.icon}
-                    </span>
-                    <span className="font-medium">{item.label}</span>
-                    {item.dropdown && (
-                      <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${
-                        activeDropdown === item.label ? 'rotate-180' : ''
-                      }`} />
-                    )}
+                    <Icon className="w-4 h-4 mr-2" />
+                    {item.name}
                   </Link>
-
-                  {/* Dropdown Menu */}
-                  {item.dropdown && activeDropdown === item.label && (
-                    <div className="absolute left-0 top-full pt-2 w-64 animate-in fade-in slide-in-from-top-5 duration-300">
-                      <div className="bg-gradient-to-b from-gray-900 to-black/95 backdrop-blur-xl rounded-2xl border border-gray-800/50 shadow-2xl shadow-black/50 p-2">
-                        {item.dropdown.map((dropdownItem) => (
-                          <Link
-                            key={dropdownItem.label}
-                            href={dropdownItem.href}
-                            className="flex items-center gap-3 px-4 py-3 text-gray-300 hover:text-white hover:bg-gray-800/30 rounded-xl transition-all duration-300 group/item"
-                          >
-                            <div className="h-2 w-2 bg-cyan-500 rounded-full opacity-0 group-hover/item:opacity-100 transition-opacity"></div>
-                            <span className="flex-1 font-medium">{dropdownItem.label}</span>
-                            <ArrowRight className="w-4 h-4 opacity-0 -translate-x-2 group-hover/item:opacity-100 group-hover/item:translate-x-0 transition-all" />
-                          </Link>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
+                );
+              })}
             </div>
 
-            {/* CTA Button */}
-            <div className="hidden lg:flex items-center gap-4">
-              <Link 
-                href="/login" 
-                className="px-4 py-2 text-gray-300 hover:text-white transition-colors font-medium"
+            {/* Right Side Actions */}
+            <div className="flex items-center space-x-3">
+              {/* Search Button */}
+              <button className="p-2 text-gray-600 hover:text-blue-600 hover:bg-gray-100 rounded-lg">
+                <Search className="w-5 h-5" />
+              </button>
+
+              {/* Cart */}
+              <Link
+                href="/cart"
+                className="p-2 text-gray-600 hover:text-blue-600 hover:bg-gray-100 rounded-lg relative"
               >
-                Sign In
-              </Link>
-              <Link href="/#waitlist">
-                <button className="relative px-6 py-3 bg-gradient-to-r from-cyan-500 to-purple-500 text-white font-semibold rounded-xl hover:opacity-90 transition-all duration-300 hover:scale-105 group quantum-btn overflow-hidden">
-                  <span className="relative z-10 flex items-center gap-2">
-                    Join Waitlist
-                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                <ShoppingBag className="w-5 h-5" />
+                {cartCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                    {cartCount}
                   </span>
-                  <div className="absolute inset-0 bg-gradient-to-r from-cyan-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                </button>
+                )}
               </Link>
-            </div>
 
-            {/* Mobile Menu Button */}
-            <button
-              className="lg:hidden p-2 rounded-lg bg-gray-900/50 text-gray-300 hover:text-white hover:bg-gray-800/50 transition-all"
-              onClick={() => setIsOpen(!isOpen)}
-              aria-label="Toggle menu"
-            >
-              {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-            </button>
+              {/* User Menu */}
+              <div className="relative">
+                <button
+                  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                  className="p-2 text-gray-600 hover:text-blue-600 hover:bg-gray-100 rounded-lg flex items-center"
+                >
+                  <User className="w-5 h-5" />
+                  <ChevronDown className="w-4 h-4 ml-1" />
+                </button>
+
+                {isUserMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50">
+                    <Link
+                      href="/profile"
+                      className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-50"
+                    >
+                      <User className="w-4 h-4 mr-3" />
+                      My Profile
+                    </Link>
+                    <Link
+                      href="/orders"
+                      className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-50"
+                    >
+                      <ShoppingBag className="w-4 h-4 mr-3" />
+                      My Orders
+                    </Link>
+                    <Link
+                      href="/affiliate/dashboard"
+                      className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-50"
+                    >
+                      <DollarSign className="w-4 h-4 mr-3" />
+                      Affiliate Dashboard
+                    </Link>
+                    
+                    {isAdmin && (
+                      <Link
+                        href="/admin"
+                        className="flex items-center px-4 py-2 text-blue-600 hover:bg-blue-50 border-t border-gray-100"
+                      >
+                        <Settings className="w-4 h-4 mr-3" />
+                        Admin Dashboard
+                      </Link>
+                    )}
+
+                    <button
+                      onClick={handleLogout}
+                      className="flex items-center w-full px-4 py-2 text-red-600 hover:bg-red-50 border-t border-gray-100 mt-2"
+                    >
+                      <LogOut className="w-4 h-4 mr-3" />
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Mobile Menu Button */}
+              <button
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                className="md:hidden p-2 text-gray-600 hover:text-blue-600 hover:bg-gray-100 rounded-lg"
+              >
+                {isMenuOpen ? (
+                  <X className="w-5 h-5" />
+                ) : (
+                  <Menu className="w-5 h-5" />
+                )}
+              </button>
+            </div>
           </div>
         </div>
+
+        {/* Mobile Menu */}
+        {isMenuOpen && (
+          <div className="md:hidden border-t border-gray-200 bg-white">
+            <div className="px-4 py-3 space-y-1">
+              {navigation.map((item) => {
+                const Icon = item.icon;
+                const isActive = pathname === item.href;
+                
+                return (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    onClick={() => setIsMenuOpen(false)}
+                    className={`
+                      flex items-center px-4 py-3 rounded-lg text-base font-medium
+                      ${isActive 
+                        ? 'text-blue-600 bg-blue-50' 
+                        : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
+                      }
+                    `}
+                  >
+                    <Icon className="w-5 h-5 mr-3" />
+                    {item.name}
+                  </Link>
+                );
+              })}
+
+              {/* Mobile User Links */}
+              <div className="pt-4 border-t border-gray-200">
+                <Link
+                  href="/profile"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="flex items-center px-4 py-3 text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-lg"
+                >
+                  <User className="w-5 h-5 mr-3" />
+                  My Profile
+                </Link>
+                <Link
+                  href="/cart"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="flex items-center px-4 py-3 text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-lg"
+                >
+                  <ShoppingBag className="w-5 h-5 mr-3" />
+                  Cart ({cartCount})
+                </Link>
+                {isAdmin && (
+                  <Link
+                    href="/admin"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="flex items-center px-4 py-3 text-blue-600 hover:bg-blue-50 rounded-lg"
+                  >
+                    <Settings className="w-5 h-5 mr-3" />
+                    Admin Dashboard
+                  </Link>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </nav>
 
-      {/* Mobile Navigation Overlay */}
-      {isOpen && (
-        <div className="lg:hidden fixed inset-0 z-40 pt-20 bg-black/95 backdrop-blur-xl">
-          <div className="h-full overflow-y-auto">
-            <div className="px-4 py-6 space-y-1">
-              {navLinks.map((item) => (
-                <div key={item.label} className="space-y-1">
-                  <div className="flex items-center justify-between p-4 rounded-xl bg-gray-900/50">
-                    <Link
-                      href={item.href}
-                      className="flex items-center gap-3 text-lg font-medium text-gray-300 hover:text-white"
-                      onClick={() => setIsOpen(false)}
-                    >
-                      <span className="text-cyan-400">{item.icon}</span>
-                      {item.label}
-                    </Link>
-                    {item.dropdown && (
-                      <button
-                        onClick={() => toggleDropdown(item.label)}
-                        className="p-1"
-                      >
-                        <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform duration-300 ${
-                          activeDropdown === item.label ? 'rotate-180' : ''
-                        }`} />
-                      </button>
-                    )}
-                  </div>
-
-                  {/* Mobile Dropdown */}
-                  {item.dropdown && activeDropdown === item.label && (
-                    <div className="ml-8 space-y-2 py-2 border-l border-gray-800">
-                      {item.dropdown.map((dropdownItem) => (
-                        <Link
-                          key={dropdownItem.label}
-                          href={dropdownItem.href}
-                          className="block p-3 text-gray-400 hover:text-white hover:bg-gray-800/50 rounded-xl transition-colors"
-                          onClick={() => setIsOpen(false)}
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="h-1.5 w-1.5 bg-cyan-500 rounded-full"></div>
-                            {dropdownItem.label}
-                          </div>
-                        </Link>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))}
-
-              {/* Mobile CTA Buttons */}
-              <div className="pt-6 border-t border-gray-800 space-y-4">
-                <Link href="/login" onClick={() => setIsOpen(false)}>
-                  <button className="w-full py-3 px-4 text-center text-gray-300 hover:text-white hover:bg-gray-800/50 rounded-xl transition-colors font-medium">
-                    Sign In
-                  </button>
-                </Link>
-                <Link href="/#waitlist" onClick={() => setIsOpen(false)}>
-                  <button className="w-full py-3 px-4 bg-gradient-to-r from-cyan-500 to-purple-500 text-white font-semibold rounded-xl hover:opacity-90 transition-all duration-300 hover:scale-105 quantum-btn relative overflow-hidden">
-                    <span className="relative z-10 flex items-center justify-center gap-2">
-                      Join Waitlist
-                      <ArrowRight className="w-4 h-4" />
-                    </span>
-                    <div className="absolute inset-0 bg-gradient-to-r from-cyan-600 to-purple-600 opacity-0 hover:opacity-100 transition-opacity"></div>
-                  </button>
-                </Link>
-              </div>
-
-              {/* Contact Info */}
-              <div className="pt-8 space-y-4">
-                <div className="p-4 rounded-xl bg-gradient-to-r from-gray-900/50 to-black/50 border border-gray-800/50">
-                  <p className="text-sm text-gray-400 mb-2">Need help?</p>
-                  <p className="text-cyan-400 font-medium">contact@raziatech-quantum.com</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Scroll Progress Indicator */}
-      <div className="fixed top-0 left-0 right-0 h-1 z-40">
-        <div 
-          className="h-full bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 transition-all duration-300"
-          style={{ 
-            width: `${Math.min(100, (window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100)}%` 
-          }}
+      {/* Click outside to close user menu */}
+      {isUserMenuOpen && (
+        <div
+          className="fixed inset-0 z-30"
+          onClick={() => setIsUserMenuOpen(false)}
         />
-      </div>
+      )}
     </>
-  )
+  );
 }

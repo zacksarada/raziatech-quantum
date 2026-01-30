@@ -1,97 +1,72 @@
-// src/components/layout/Footer.tsx
-'use client';
-
-import { Heart, Zap, Mail, MapPin, Phone, Github, Twitter, Linkedin, ArrowUpRight, ExternalLink } from 'lucide-react'
-import Link from 'next/link'
-import { useState, useEffect } from 'react'
+import Link from 'next/link';
+import { 
+  Facebook, Twitter, Instagram, Linkedin, 
+  Github, Mail, MapPin, Phone, Heart
+} from 'lucide-react';
 
 export default function Footer() {
-  const [currentYear, setCurrentYear] = useState(new Date().getFullYear())
-  const [isVisible, setIsVisible] = useState(false)
+  const currentYear = new Date().getFullYear();
 
-  useEffect(() => {
-    setCurrentYear(new Date().getFullYear())
-    setIsVisible(true)
-  }, [])
-
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  }
+  const footerLinks = {
+    Products: [
+      { name: 'Code Templates', href: '/products?type=template' },
+      { name: 'Ebooks & Courses', href: '/products?type=ebook' },
+      { name: 'Services', href: '/products?type=service' },
+      { name: 'Bundles', href: '/products?category=Bundles' },
+    ],
+    Company: [
+      { name: 'About Us', href: '/about' },
+      { name: 'Blog', href: '/blog' },
+      { name: 'Careers', href: '/careers' },
+      { name: 'Contact', href: '/contact' },
+    ],
+    Support: [
+      { name: 'Help Center', href: '/help' },
+      { name: 'FAQ', href: '/faq' },
+      { name: 'Refund Policy', href: '/refund-policy' },
+      { name: 'Terms of Service', href: '/terms' },
+    ],
+    Earn: [
+      { name: 'Affiliate Program', href: '/affiliate' },
+      { name: 'Sell Your Product', href: '/sell' },
+      { name: 'Creator Resources', href: '/resources' },
+      { name: 'Commission Rates', href: '/commissions' },
+    ],
+  };
 
   const socialLinks = [
-    { icon: Github, href: "https://github.com/raziaquantum", label: "GitHub", color: "hover:text-gray-300" },
-    { icon: Twitter, href: "https://twitter.com/raziaquantum", label: "Twitter", color: "hover:text-cyan-400" },
-    { icon: Linkedin, href: "https://linkedin.com/company/raziaquantum", label: "LinkedIn", color: "hover:text-blue-400" },
-    { icon: Mail, href: "mailto:contact@raziatech-quantum.com", label: "Email", color: "hover:text-red-400" },
-  ]
-
-  const quickLinks = [
-    { label: "Technology", href: "/#technology" },
-    { label: "Use Cases", href: "/#use-cases" },
-    { label: "Pricing", href: "/pricing" },
-    { label: "Documentation", href: "/docs" },
-    { label: "API Reference", href: "/api-docs" },
-  ]
-
-  const legalLinks = [
-    { label: "Privacy Policy", href: "/privacy" },
-    { label: "Terms of Service", href: "/terms" },
-    { label: "Cookie Policy", href: "/cookies" },
-    { label: "Security", href: "/security" },
-    { label: "Compliance", href: "/compliance" },
-  ]
-
-  const companyLinks = [
-    { label: "About Us", href: "/about" },
-    { label: "Careers", href: "/careers" },
-    { label: "Blog", href: "/blog" },
-    { label: "News", href: "/news" },
-    { label: "Partners", href: "/partners" },
-  ]
+    { name: 'Twitter', icon: Twitter, href: 'https://twitter.com/RaziaTech' },
+    { name: 'Facebook', icon: Facebook, href: 'https://facebook.com/RaziaTech' },
+    { name: 'Instagram', icon: Instagram, href: 'https://instagram.com/RaziaTech' },
+    { name: 'LinkedIn', icon: Linkedin, href: 'https://linkedin.com/company/razia-tech' },
+    { name: 'GitHub', icon: Github, href: 'https://github.com/razia-tech' },
+  ];
 
   return (
-    <footer className="relative border-t border-gray-800/50 bg-gradient-to-b from-black via-gray-950 to-black overflow-hidden">
-      {/* Quantum Background Effects */}
-      <div className="absolute inset-0">
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-cyan-500/5 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-0 right-0 w-64 h-64 bg-purple-500/5 rounded-full blur-3xl"></div>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 py-16 relative z-10">
-        {/* Main Footer Content */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 mb-16">
+    <footer className="bg-gray-900 text-gray-300">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
           {/* Brand Column */}
-          <div className="lg:col-span-2 space-y-6">
-            <div className="flex items-center gap-4">
-              <div className="relative group">
-                <div className="h-14 w-14 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-xl flex items-center justify-center animate-quantum">
-                  <Zap className="h-7 w-7 text-white" />
-                </div>
-                <div className="absolute -inset-2 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-xl blur-lg opacity-30 group-hover:opacity-50 transition-opacity"></div>
+          <div className="lg:col-span-2">
+            <div className="flex items-center mb-6">
+              <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg flex items-center justify-center mr-3">
+                <span className="text-white font-bold text-sm">RZ</span>
               </div>
-              <div>
-                <h3 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-500">
-                  RaziaTech Quantum
-                </h3>
-                <p className="text-sm text-cyan-400 font-medium mt-1">Enterprise Quantum Solutions</p>
-              </div>
+              <span className="text-2xl font-bold text-white">RaziaTech</span>
             </div>
-            
-            <p className="text-gray-400 text-lg leading-relaxed max-w-md">
-              Transforming Indonesian enterprises with quantum computing. 
-              Accelerating innovation through quantum-powered solutions.
+            <p className="text-gray-400 mb-6 max-w-md">
+              Premium digital products marketplace for developers, creators, and entrepreneurs. 
+              Join thousands of successful digital product sellers and buyers.
             </p>
-            
-            {/* Social Links */}
-            <div className="flex gap-4">
-              {socialLinks.map((social, index) => (
+            <div className="flex space-x-4">
+              {socialLinks.map((social) => (
                 <a
-                  key={index}
+                  key={social.name}
                   href={social.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`p-3 bg-gray-900/50 rounded-xl border border-gray-800 text-gray-400 ${social.color} transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-cyan-500/10 group`}
-                  aria-label={social.label}
+                  className="w-10 h-10 bg-gray-800 hover:bg-gray-700 rounded-lg flex items-center justify-center text-gray-400 hover:text-white transition-colors"
+                  aria-label={social.name}
                 >
                   <social.icon className="w-5 h-5" />
                 </a>
@@ -99,183 +74,97 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Quick Links */}
-          <div className="space-y-6">
-            <h4 className="text-lg font-bold text-white flex items-center gap-2">
-              <span className="bg-gradient-to-r from-cyan-500 to-purple-500 bg-clip-text text-transparent">
-                Quick Links
-              </span>
-              <ArrowUpRight className="w-4 h-4 text-gray-500" />
-            </h4>
-            <ul className="space-y-3">
-              {quickLinks.map((link, index) => (
-                <li key={index}>
-                  <Link 
-                    href={link.href}
-                    className="text-gray-400 hover:text-white transition-all duration-300 hover:translate-x-1 inline-flex items-center gap-2 group"
-                  >
-                    <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Company */}
-          <div className="space-y-6">
-            <h4 className="text-lg font-bold text-white flex items-center gap-2">
-              <span className="bg-gradient-to-r from-cyan-500 to-purple-500 bg-clip-text text-transparent">
-                Company
-              </span>
-            </h4>
-            <ul className="space-y-3">
-              {companyLinks.map((link, index) => (
-                <li key={index}>
-                  <Link 
-                    href={link.href}
-                    className="text-gray-400 hover:text-white transition-all duration-300 hover:translate-x-1 inline-flex items-center gap-2 group"
-                  >
-                    <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Legal & Contact */}
-          <div className="space-y-6">
-            <div>
-              <h4 className="text-lg font-bold text-white flex items-center gap-2 mb-4">
-                <span className="bg-gradient-to-r from-cyan-500 to-purple-500 bg-clip-text text-transparent">
-                  Legal
-                </span>
-              </h4>
+          {/* Links Columns */}
+          {Object.entries(footerLinks).map(([category, links]) => (
+            <div key={category}>
+              <h3 className="text-white font-semibold text-lg mb-4">{category}</h3>
               <ul className="space-y-3">
-                {legalLinks.map((link, index) => (
-                  <li key={index}>
-                    <Link 
+                {links.map((link) => (
+                  <li key={link.name}>
+                    <Link
                       href={link.href}
-                      className="text-gray-400 hover:text-white transition-all duration-300 hover:translate-x-1 inline-flex items-center gap-2 group text-sm"
+                      className="text-gray-400 hover:text-white transition-colors"
                     >
-                      <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-                      {link.label}
+                      {link.name}
                     </Link>
                   </li>
                 ))}
               </ul>
             </div>
-
-            {/* Contact Info */}
-            <div className="space-y-4 pt-4 border-t border-gray-800/50">
-              <div className="flex items-start gap-3">
-                <Mail className="w-4 h-4 text-cyan-400 mt-1" />
-                <div>
-                  <p className="text-sm font-medium text-white">Email</p>
-                  <a 
-                    href="mailto:contact@raziatech-quantum.com" 
-                    className="text-sm text-gray-400 hover:text-cyan-400 transition-colors"
-                  >
-                    contact@raziatech-quantum.com
-                  </a>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <MapPin className="w-4 h-4 text-cyan-400 mt-1" />
-                <div>
-                  <p className="text-sm font-medium text-white">Location</p>
-                  <p className="text-sm text-gray-400">Jakarta, Indonesia</p>
-                </div>
-              </div>
-            </div>
-          </div>
+          ))}
         </div>
 
-        {/* Newsletter Subscription */}
-        <div className="mb-12 p-8 rounded-2xl bg-gradient-to-r from-gray-900/50 to-black/50 border border-gray-800/50 quantum-glass">
-          <div className="max-w-2xl mx-auto text-center">
-            <h3 className="text-2xl font-bold mb-3 text-white">
-              Stay Updated with Quantum Innovations
-            </h3>
-            <p className="text-gray-400 mb-6">
-              Subscribe to our newsletter for the latest in quantum computing, 
-              industry insights, and exclusive updates.
-            </p>
-            <form className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
-              <input
-                type="email"
-                placeholder="Enter your email"
-                className="flex-1 px-6 py-3 bg-gray-900/70 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all"
-                required
-              />
+        {/* Newsletter */}
+        <div className="mt-12 pt-8 border-t border-gray-800">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+            <div>
+              <h3 className="text-white text-lg font-semibold mb-2">
+                Stay Updated
+              </h3>
+              <p className="text-gray-400">
+                Get the latest product updates and marketplace news
+              </p>
+            </div>
+            <form className="flex w-full md:w-auto">
+              <div className="relative flex-grow md:flex-grow-0">
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <input
+                  type="email"
+                  placeholder="Enter your email"
+                  className="pl-10 pr-4 py-3 bg-gray-800 border border-gray-700 rounded-l-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full md:w-64 text-white"
+                />
+              </div>
               <button
                 type="submit"
-                className="px-8 py-3 bg-gradient-to-r from-cyan-500 to-purple-500 text-white font-semibold rounded-xl hover:opacity-90 transition-all duration-300 hover:scale-105 quantum-btn relative overflow-hidden"
+                className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium rounded-r-lg hover:from-blue-700 hover:to-purple-700 transition-colors"
               >
-                <span className="relative z-10">Subscribe</span>
-                <div className="absolute inset-0 bg-gradient-to-r from-cyan-600 to-purple-600 opacity-0 hover:opacity-100 transition-opacity"></div>
+                Subscribe
               </button>
             </form>
           </div>
         </div>
 
-        {/* Bottom Bar */}
-        <div className="pt-8 border-t border-gray-800/50 flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="text-center md:text-left">
-            <p className="text-gray-500 text-sm flex items-center justify-center md:justify-start gap-2">
-              <span>© {currentYear} RaziaTech Quantum. All rights reserved.</span>
-              <span className="hidden md:inline">•</span>
-              <span className="text-gray-600">Quantum computing for Indonesia's future</span>
-            </p>
+        {/* Contact Info */}
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6 text-sm text-gray-400">
+          <div className="flex items-center">
+            <MapPin className="w-4 h-4 mr-2" />
+            <span>Jakarta, Indonesia</span>
           </div>
-          
-          <div className="flex flex-col sm:flex-row items-center gap-6">
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></div>
-              <span className="text-sm text-gray-500">All systems operational</span>
-            </div>
-            
-            <div className="flex items-center gap-1 text-sm text-gray-500">
-              <span>Built with</span>
-              <Heart className="h-4 w-4 text-red-500 fill-red-500 animate-pulse" />
-              <span>by the RaziaTech Quantum Team</span>
-            </div>
+          <div className="flex items-center">
+            <Mail className="w-4 h-4 mr-2" />
+            <a href="mailto:hello@raziatech.com" className="hover:text-white">
+              hello@raziatech.com
+            </a>
+          </div>
+          <div className="flex items-center">
+            <Phone className="w-4 h-4 mr-2" />
+            <a href="tel:+6281234567890" className="hover:text-white">
+              +62 812 3456 7890
+            </a>
           </div>
         </div>
 
-        {/* Back to Top Button */}
-        <button
-          onClick={scrollToTop}
-          className="fixed bottom-8 right-8 p-3 bg-gradient-to-r from-cyan-500 to-purple-500 text-white rounded-xl hover:scale-110 transition-all duration-300 hover:shadow-2xl hover:shadow-cyan-500/20 z-40 opacity-0 group hover:opacity-100"
-          aria-label="Back to top"
-        >
-          <ArrowUpRight className="w-5 h-5 transform rotate-270" />
-        </button>
-      </div>
-
-      {/* Quantum Circuit Pattern */}
-      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-cyan-500 to-transparent opacity-20"></div>
-      
-      {/* Floating Quantum Particles */}
-      <div className="absolute bottom-20 left-1/4">
-        <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse opacity-50"></div>
-      </div>
-      <div className="absolute bottom-32 right-1/3">
-        <div className="w-1 h-1 bg-purple-400 rounded-full animate-pulse opacity-30"></div>
+        {/* Bottom Bar */}
+        <div className="mt-8 pt-8 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="text-sm text-gray-400">
+            © {currentYear} RaziaTech Marketplace. All rights reserved.
+          </div>
+          <div className="flex items-center text-sm text-gray-400">
+            Made with <Heart className="w-4 h-4 mx-1 text-red-500" /> in Indonesia
+          </div>
+          <div className="flex items-center space-x-6 text-sm">
+            <Link href="/privacy" className="text-gray-400 hover:text-white">
+              Privacy Policy
+            </Link>
+            <Link href="/terms" className="text-gray-400 hover:text-white">
+              Terms of Service
+            </Link>
+            <Link href="/cookies" className="text-gray-400 hover:text-white">
+              Cookie Policy
+            </Link>
+          </div>
+        </div>
       </div>
     </footer>
-  )
+  );
 }
-
-// ChevronRight component for the links
-const ChevronRight = ({ className }: { className?: string }) => (
-  <svg 
-    className={className} 
-    fill="none" 
-    viewBox="0 0 24 24" 
-    stroke="currentColor"
-  >
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-  </svg>
-)
