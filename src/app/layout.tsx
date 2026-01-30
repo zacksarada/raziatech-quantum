@@ -1,31 +1,24 @@
-// src/app/layout.tsx - MINIMAL WORKING VERSION
-import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+// src/app/layout.tsx - ULTRA SIMPLE
 import './globals.css'
-import { CartProvider } from '@/contexts/CartContext'
-import Navigation from '@/components/layout/Navigation'
-import Footer from '@/components/layout/Footer'
 
-const inter = Inter({ subsets: ['latin'] })
-
-export const metadata: Metadata = {
-  title: 'RaziaTech Marketplace',
-  description: 'Digital Products Marketplace',
+export const metadata = {
+  title: 'RaziaTech',
+  description: 'Marketplace',
 }
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
-        <CartProvider>
-          <Navigation />
+      <body>
+        <div className="min-h-screen bg-gray-50">
+          <header className="bg-white border-b h-16 flex items-center px-4">
+            <h1 className="text-xl font-bold text-blue-600">RaziaTech</h1>
+          </header>
           <main>{children}</main>
-          <Footer />
-        </CartProvider>
+          <footer className="bg-gray-100 border-t h-16 flex items-center justify-center">
+            <p className="text-gray-600">© 2024</p>
+          </footer>
+        </div>
       </body>
     </html>
   )
