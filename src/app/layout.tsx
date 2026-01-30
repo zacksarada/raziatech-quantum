@@ -1,8 +1,8 @@
 // src/app/layout.tsx - UPDATED FOR DIGITAL PRODUCTS MARKETPLACE
 import { Inter, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
-import Navigation from '@/components/Navigation'
-import Footer from '@/components/Footer'
+import Navigation from '@/components/layout/Navigation';
+import Footer from '@/components/layout/Footer';
 import { CartProvider } from '@/contexts/CartContext'
 
 // Font configurations
